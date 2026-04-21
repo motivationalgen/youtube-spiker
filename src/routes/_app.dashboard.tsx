@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Search, Tags, Type, TrendingUp, FileText, Bookmark } from "lucide-react";
+import { getItemsByType } from "@/lib/storage";
 
 export const Route = createFileRoute("/_app/dashboard")({
   component: DashboardPage,
@@ -36,13 +38,23 @@ const tools = [
   },
 ];
 
-const stats = [
-  { label: "Saved Keywords", value: "0", icon: TrendingUp },
-  { label: "Generated Tags", value: "0", icon: FileText },
-  { label: "Saved Titles", value: "0", icon: Bookmark },
-];
-
 function DashboardPage() {
+  const [counts, setCounts] = useState({ keywords: 0, tags: 0, titles: 0 });
+
+  useEffect(() => {
+    setCounts({
+      keywords: getItemsByType("keyword").length,
+      tags: getItemsByType("tag").length,
+      titles: getItemsByType("title").length,
+    });
+  }, []);
+
+  const statsData = [
+    { label: "Saved Keywords", value: String(counts.keywords), icon: TrendingUp },
+    { label: "Generated Tags", value: String(counts.tags), icon: FileText },
+    { label: "Saved Titles", value: String(counts.titles), icon: Bookmark },
+  ];
+
   return (
     <div className="space-y-6">
       <div>
@@ -52,9 +64,8 @@ function DashboardPage() {
         </p>
       </div>
 
-      {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-3">
-        {stats.map((stat) => (
+        {statsData.map((stat) => (
           <Card key={stat.label}>
             <CardContent className="flex items-center gap-4 p-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
@@ -69,7 +80,6 @@ function DashboardPage() {
         ))}
       </div>
 
-      {/* Tool Cards */}
       <div>
         <h2 className="text-lg font-semibold mb-3">Quick Access</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -93,7 +103,6 @@ function DashboardPage() {
         </div>
       </div>
 
-      {/* Recent Activity */}
       <div>
         <h2 className="text-lg font-semibold mb-3">Recent Activity</h2>
         <Card>

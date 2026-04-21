@@ -32,6 +32,7 @@ export function TopBar() {
   return (
     <header className="flex h-14 items-center gap-3 border-b border-border bg-card px-4">
       <SidebarTrigger className="-ml-1" />
+      <span className="text-sm font-bold tracking-tight text-foreground hidden sm:block">YouTube Growth Suite</span>
 
       <div className="relative flex-1 max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
