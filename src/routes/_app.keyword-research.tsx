@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Search, Copy, Download, Bookmark, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
+import { saveItem, isItemSaved } from "@/lib/storage";
 
 export const Route = createFileRoute("/_app/keyword-research")({
   component: KeywordResearchPage,
@@ -72,12 +73,19 @@ function KeywordResearchPage() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<KeywordResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const [savedKeywords, setSavedKeywords] = useState<Set<string>>(new Set());
 
   const handleSearch = () => {
     if (!query.trim()) return;
     setLoading(true);
     setTimeout(() => {
       setResults(generateMockKeywords(query.trim()));
+      // Check which are already saved
+      const saved = new Set<string>();
+      generateMockKeywords(query.trim()).forEach((r) => {
+        if (isItemSaved("keyword", r.keyword)) saved.add(r.keyword);
+      });
+      setSavedKeywords(saved);
       setLoading(false);
     }, 800);
   };
@@ -91,6 +99,20 @@ function KeywordResearchPage() {
     const text = results.map((r) => r.keyword).join("\n");
     navigator.clipboard.writeText(text);
     toast.success("All keywords copied");
+  };
+
+  const handleSaveKeyword = (r: KeywordResult) => {
+    if (savedKeywords.has(r.keyword)) {
+      toast.info("Already saved");
+      return;
+    }
+    saveItem({
+      type: "keyword",
+      content: r.keyword,
+      meta: { volume: r.volume, competition: r.competition, difficulty: r.difficulty },
+    });
+    setSavedKeywords((prev) => new Set([...prev, r.keyword]));
+    toast.success("Keyword saved!");
   };
 
   const exportCsv = () => {
@@ -165,33 +187,41 @@ function KeywordResearchPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {results.map((r, i) => (
-                    <tr key={i} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
-                      <td className="p-3 font-medium">{r.keyword}</td>
-                      <td className="p-3">{r.volume.toLocaleString()}</td>
-                      <td className="p-3">
-                        <Badge variant="secondary" className={competitionColor(r.competition)}>
-                          {r.competition}
-                        </Badge>
-                      </td>
-                      <td className={`p-3 font-semibold ${difficultyColor(r.difficulty)}`}>
-                        {r.difficulty}/100
-                      </td>
-                      <td className="p-3">
-                        <TrendingUp className={`h-4 w-4 ${r.trend === "up" ? "text-green-500" : r.trend === "down" ? "text-red-500 rotate-180" : "text-muted-foreground rotate-90"}`} />
-                      </td>
-                      <td className="p-3">
-                        <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => copyKeyword(r.keyword)}>
-                            <Copy className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => toast.success("Keyword saved!")}>
-                            <Bookmark className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {results.map((r, i) => {
+                    const isSaved = savedKeywords.has(r.keyword);
+                    return (
+                      <tr key={i} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
+                        <td className="p-3 font-medium">{r.keyword}</td>
+                        <td className="p-3">{r.volume.toLocaleString()}</td>
+                        <td className="p-3">
+                          <Badge variant="secondary" className={competitionColor(r.competition)}>
+                            {r.competition}
+                          </Badge>
+                        </td>
+                        <td className={`p-3 font-semibold ${difficultyColor(r.difficulty)}`}>
+                          {r.difficulty}/100
+                        </td>
+                        <td className="p-3">
+                          <TrendingUp className={`h-4 w-4 ${r.trend === "up" ? "text-green-500" : r.trend === "down" ? "text-red-500 rotate-180" : "text-muted-foreground rotate-90"}`} />
+                        </td>
+                        <td className="p-3">
+                          <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => copyKeyword(r.keyword)}>
+                              <Copy className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className={`h-7 w-7 transition-colors ${isSaved ? "text-primary bg-primary/10" : ""}`}
+                              onClick={() => handleSaveKeyword(r)}
+                            >
+                              <Bookmark className={`h-3.5 w-3.5 ${isSaved ? "fill-primary" : ""}`} />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

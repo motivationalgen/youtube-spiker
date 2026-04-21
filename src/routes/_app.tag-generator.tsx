@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tags, Copy, X, Bookmark } from "lucide-react";
 import { toast } from "sonner";
+import { saveItem, isItemSaved } from "@/lib/storage";
 
 export const Route = createFileRoute("/_app/tag-generator")({
   component: TagGeneratorPage,
@@ -36,11 +37,13 @@ function TagGeneratorPage() {
   const [topic, setTopic] = useState("");
   const [tags, setTags] = useState<{ primary: string[]; secondary: string[]; longTail: string[] } | null>(null);
   const [removedTags, setRemovedTags] = useState<Set<string>>(new Set());
+  const [tagsSaved, setTagsSaved] = useState(false);
 
   const handleGenerate = () => {
     if (!topic.trim()) return;
     setTags(generateTags(topic.trim()));
     setRemovedTags(new Set());
+    setTagsSaved(false);
   };
 
   const allTags = tags
@@ -55,6 +58,18 @@ function TagGeneratorPage() {
   const copyAll = () => {
     navigator.clipboard.writeText(allTags.join(", "));
     toast.success("All tags copied!");
+  };
+
+  const handleSaveAll = () => {
+    if (tagsSaved) {
+      toast.info("Already saved");
+      return;
+    }
+    allTags.forEach((tag) => {
+      saveItem({ type: "tag", content: tag });
+    });
+    setTagsSaved(true);
+    toast.success(`${allTags.length} tags saved!`);
   };
 
   const renderTagGroup = (title: string, groupTags: string[], color: string) => {
@@ -119,8 +134,14 @@ function TagGeneratorPage() {
               <Button variant="outline" size="sm" onClick={copyAll}>
                 <Copy className="h-3.5 w-3.5 mr-1" /> Copy All
               </Button>
-              <Button variant="outline" size="sm" onClick={() => toast.success("Tags saved!")}>
-                <Bookmark className="h-3.5 w-3.5 mr-1" /> Save
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSaveAll}
+                className={`transition-colors ${tagsSaved ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90 hover:text-primary-foreground" : ""}`}
+              >
+                <Bookmark className={`h-3.5 w-3.5 mr-1 ${tagsSaved ? "fill-primary-foreground" : ""}`} />
+                {tagsSaved ? "Saved" : "Save"}
               </Button>
             </div>
           </div>

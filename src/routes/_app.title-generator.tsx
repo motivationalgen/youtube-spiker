@@ -3,9 +3,9 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Type, Copy, Heart, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { saveItem, isItemSaved } from "@/lib/storage";
 
 export const Route = createFileRoute("/_app/title-generator")({
   component: TitleGeneratorPage,
@@ -110,20 +110,27 @@ function ctrColor(score: number) {
 function TitleGeneratorPage() {
   const [topic, setTopic] = useState("");
   const [tone, setTone] = useState("viral");
-  const [titles, setTitles] = useState<{ text: string; ctr: number; favorited: boolean }[]>([]);
+  const [titles, setTitles] = useState<{ text: string; ctr: number; saved: boolean }[]>([]);
 
   const handleGenerate = () => {
     if (!topic.trim()) return;
     const fns = templates[tone] || templates.viral;
     const generated = fns.map((fn) => {
       const text = fn(topic.trim());
-      return { text, ctr: calculateCTR(text), favorited: false };
+      return { text, ctr: calculateCTR(text), saved: isItemSaved("title", text) };
     });
     setTitles(generated);
   };
 
-  const toggleFavorite = (i: number) => {
-    setTitles((prev) => prev.map((t, idx) => idx === i ? { ...t, favorited: !t.favorited } : t));
+  const toggleSave = (i: number) => {
+    const title = titles[i];
+    if (title.saved) {
+      toast.info("Already saved");
+      return;
+    }
+    saveItem({ type: "title", content: title.text, meta: { ctr: title.ctr } });
+    setTitles((prev) => prev.map((t, idx) => idx === i ? { ...t, saved: true } : t));
+    toast.success("Title saved!");
   };
 
   const copyTitle = (text: string) => {
@@ -205,13 +212,10 @@ function TitleGeneratorPage() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
-                    onClick={() => {
-                      toggleFavorite(i);
-                      toast.success(title.favorited ? "Removed from favorites" : "Added to favorites");
-                    }}
+                    className={`h-8 w-8 transition-colors ${title.saved ? "text-red-500 bg-red-500/10" : ""}`}
+                    onClick={() => toggleSave(i)}
                   >
-                    <Heart className={`h-3.5 w-3.5 ${title.favorited ? "fill-red-500 text-red-500" : ""}`} />
+                    <Heart className={`h-3.5 w-3.5 ${title.saved ? "fill-red-500 text-red-500" : ""}`} />
                   </Button>
                 </div>
               </CardContent>
