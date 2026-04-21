@@ -9,38 +9,129 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppTitleGeneratorRouteImport } from './routes/_app.title-generator'
+import { Route as AppTagGeneratorRouteImport } from './routes/_app.tag-generator'
+import { Route as AppSettingsRouteImport } from './routes/_app.settings'
+import { Route as AppSavedProjectsRouteImport } from './routes/_app.saved-projects'
+import { Route as AppKeywordResearchRouteImport } from './routes/_app.keyword-research'
+import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppTitleGeneratorRoute = AppTitleGeneratorRouteImport.update({
+  id: '/title-generator',
+  path: '/title-generator',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTagGeneratorRoute = AppTagGeneratorRouteImport.update({
+  id: '/tag-generator',
+  path: '/tag-generator',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSavedProjectsRoute = AppSavedProjectsRouteImport.update({
+  id: '/saved-projects',
+  path: '/saved-projects',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppKeywordResearchRoute = AppKeywordResearchRouteImport.update({
+  id: '/keyword-research',
+  path: '/keyword-research',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDashboardRoute = AppDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dashboard': typeof AppDashboardRoute
+  '/keyword-research': typeof AppKeywordResearchRoute
+  '/saved-projects': typeof AppSavedProjectsRoute
+  '/settings': typeof AppSettingsRoute
+  '/tag-generator': typeof AppTagGeneratorRoute
+  '/title-generator': typeof AppTitleGeneratorRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dashboard': typeof AppDashboardRoute
+  '/keyword-research': typeof AppKeywordResearchRoute
+  '/saved-projects': typeof AppSavedProjectsRoute
+  '/settings': typeof AppSettingsRoute
+  '/tag-generator': typeof AppTagGeneratorRoute
+  '/title-generator': typeof AppTitleGeneratorRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_app': typeof AppRouteWithChildren
+  '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/keyword-research': typeof AppKeywordResearchRoute
+  '/_app/saved-projects': typeof AppSavedProjectsRoute
+  '/_app/settings': typeof AppSettingsRoute
+  '/_app/tag-generator': typeof AppTagGeneratorRoute
+  '/_app/title-generator': typeof AppTitleGeneratorRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/keyword-research'
+    | '/saved-projects'
+    | '/settings'
+    | '/tag-generator'
+    | '/title-generator'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/keyword-research'
+    | '/saved-projects'
+    | '/settings'
+    | '/tag-generator'
+    | '/title-generator'
+  id:
+    | '__root__'
+    | '/'
+    | '/_app'
+    | '/_app/dashboard'
+    | '/_app/keyword-research'
+    | '/_app/saved-projects'
+    | '/_app/settings'
+    | '/_app/tag-generator'
+    | '/_app/title-generator'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,21 +139,75 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/title-generator': {
+      id: '/_app/title-generator'
+      path: '/title-generator'
+      fullPath: '/title-generator'
+      preLoaderRoute: typeof AppTitleGeneratorRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/tag-generator': {
+      id: '/_app/tag-generator'
+      path: '/tag-generator'
+      fullPath: '/tag-generator'
+      preLoaderRoute: typeof AppTagGeneratorRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/saved-projects': {
+      id: '/_app/saved-projects'
+      path: '/saved-projects'
+      fullPath: '/saved-projects'
+      preLoaderRoute: typeof AppSavedProjectsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/keyword-research': {
+      id: '/_app/keyword-research'
+      path: '/keyword-research'
+      fullPath: '/keyword-research'
+      preLoaderRoute: typeof AppKeywordResearchRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/dashboard': {
+      id: '/_app/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
+interface AppRouteChildren {
+  AppDashboardRoute: typeof AppDashboardRoute
+  AppKeywordResearchRoute: typeof AppKeywordResearchRoute
+  AppSavedProjectsRoute: typeof AppSavedProjectsRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppTagGeneratorRoute: typeof AppTagGeneratorRoute
+  AppTitleGeneratorRoute: typeof AppTitleGeneratorRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppDashboardRoute: AppDashboardRoute,
+  AppKeywordResearchRoute: AppKeywordResearchRoute,
+  AppSavedProjectsRoute: AppSavedProjectsRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppTagGeneratorRoute: AppTagGeneratorRoute,
+  AppTitleGeneratorRoute: AppTitleGeneratorRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
