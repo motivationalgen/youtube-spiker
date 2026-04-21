@@ -47,7 +47,7 @@ export function AppSidebar() {
       <SidebarHeader className="p-4">
         <Link to="/dashboard" className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary">
-            <Youtube className="h-4 w-4 text-sidebar-primary-foreground" />
+            <Play className="h-4 w-4 text-sidebar-primary-foreground" />
           </div>
           {!collapsed && (
             <span className="text-sm font-bold tracking-tight text-sidebar-foreground">
