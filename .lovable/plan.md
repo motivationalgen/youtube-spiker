@@ -1,67 +1,31 @@
 
 
-# YouTube Growth Suite — Foundation + Core Tools
+# Fix: Enable Auto-Confirm Email Signups
 
-## Overview
-Build a clean SaaS-style web app with authentication, dashboard, sidebar navigation, and 3 core tools (Keyword Research, Tag Generator, Title Generator) using mock/placeholder data. AI and YouTube API integration can be added later.
+## Problem
+After registering, users cannot log in because email confirmation is required by default. The auth system returns "Email not confirmed" when they try to sign in.
 
-## 1. App Shell & Layout
-- **Sidebar navigation** (collapsible) with sections: Dashboard, Keyword Research, Tag Generator, Title Generator, Saved Projects, Settings
-- **Top bar** with search input and user profile avatar/dropdown
-- **Design**: Clean white background, dark ash-green accent (`#3a5a40`), rounded cards, soft shadows, smooth hover effects
-- Mobile responsive with collapsible sidebar
+## Solution
+Enable auto-confirm for email signups so users can log in immediately after registration. Also improve the login error message to be more user-friendly.
 
-## 2. Authentication (Lovable Cloud)
-- Email + password signup/login
-- User profile storage (name, avatar)
-- Protected routes — all tools behind auth
+## Steps
 
-## 3. Dashboard (`/dashboard`)
-- Welcome message with user's name
-- Quick-access cards to each tool
-- "Recent activity" section (recently used tools, last saved items)
-- Stats cards (total saved keywords, tags, titles)
+1. **Enable auto-confirm email signups** using the `configure_auth` tool so new users can sign in immediately without needing to verify their email first.
 
-## 4. Keyword Research Tool (`/keyword-research`)
-- **Input**: Keyword/topic text field
-- **Output** (mock data for now, ready for API integration later):
-  - Search volume estimate
-  - Competition level (Low/Medium/High)
-  - Keyword difficulty score (0-100)
-  - 10-15 related keywords with metrics
-  - Trending keywords section
-- **Actions**: Save keywords, copy individual/all, export as CSV
+2. **Update the register page** (`src/routes/_app.register.tsx`):
+   - Change the success toast from "Check your email to confirm" to "Account created! Welcome aboard."
+   - Auto-navigate to `/dashboard` instead of `/login` after successful signup (since auth state will be active immediately).
 
-## 5. Tag Generator (`/tag-generator`)
-- **Input**: Video topic or title
-- **Output** (algorithm-based, no AI needed):
-  - SEO-optimized tags (mix of short and long-tail)
-  - Tags grouped by type (primary, secondary, long-tail)
-  - Character count tracker (YouTube 500-char limit)
-- **Actions**: Copy all tags, save to project, remove individual tags
+3. **Improve login error messages** (`src/routes/_app.login.tsx`):
+   - Map the technical "Email not confirmed" error to a friendlier message like "Please confirm your email before signing in."
+   - Map "Invalid login credentials" to "Incorrect email or password."
 
-## 6. Title Generator (`/title-generator`)
-- **Input**: Topic + tone selector (viral, educational, how-to, listicle, clickbait)
-- **Output** (template-based for now, AI-ready later):
-  - 10 title suggestions based on proven YouTube title patterns
-  - CTR score indicator per title (based on power words, length, etc.)
-- **Actions**: Save favorites, copy individual titles
+4. **Create a profiles table** via database migration to store user display names and preferences:
+   - Columns: `id` (uuid, FK to auth.users), `email` (text), `display_name` (text), `created_at`
+   - RLS policies: users can read/update only their own profile
+   - Trigger to auto-create a profile row on signup
 
-## 7. Saved Projects (`/saved-projects`)
-- Database-backed storage for all saved content
-- Organize by type (keywords, tags, titles)
-- Edit and delete saved items
-- Simple folder/project grouping
-
-## 8. Settings (`/settings`)
-- Profile editing (name, avatar)
-- Dark mode toggle
-- Account management
-
-## 9. UX Polish
-- Toast notifications for all actions (copy, save, delete)
-- Copy buttons on every generated item
-- Smooth page transitions
-- Loading states and skeletons
-- Mobile-responsive throughout
+## Technical Notes
+- The `configure_auth` tool will be used with `enable_signup: true` and `double_confirm_email_changes: false` to allow immediate access.
+- Existing unconfirmed users (motivationalgen@gmail.com, bizmarrowhenry@gmail.com) will need to re-register or have their emails manually confirmed.
 
