@@ -1,31 +1,63 @@
 
 
-# Fix: Enable Auto-Confirm Email Signups
+# Add Missing Features to YouTube Growth Suite
 
-## Problem
-After registering, users cannot log in because email confirmation is required by default. The auth system returns "Email not confirmed" when they try to sign in.
+## What We Have
+Dashboard, Keyword Research, Tag Generator, Title Generator, Saved Projects, Settings, Auth (email/password), Dark Mode.
 
-## Solution
-Enable auto-confirm for email signups so users can log in immediately after registration. Also improve the login error message to be more user-friendly.
+## What's Missing (from the master prompt)
 
-## Steps
+### 1. Description Generator (`/description-generator`)
+- Input fields: video title, keywords (comma-separated), tone selector (professional, casual, educational, entertaining)
+- Output: a full mock YouTube description with hooks, keywords, hashtags, and social links placeholder
+- Copy button, save to projects functionality
 
-1. **Enable auto-confirm email signups** using the `configure_auth` tool so new users can sign in immediately without needing to verify their email first.
+### 2. Video Idea Generator (`/video-ideas`)
+- Input: niche/category dropdown (Gaming, Tech, Education, Lifestyle, Finance, Cooking, Fitness, etc.)
+- Output: 8-10 mock video ideas with estimated potential (High/Medium/Low)
+- Save individual ideas, copy functionality
 
-2. **Update the register page** (`src/routes/_app.register.tsx`):
-   - Change the success toast from "Check your email to confirm" to "Account created! Welcome aboard."
-   - Auto-navigate to `/dashboard` instead of `/login` after successful signup (since auth state will be active immediately).
+### 3. Content Planner (`/content-planner`)
+- Calendar-based monthly view
+- Users can add content ideas to specific dates (title + notes)
+- Data stored in localStorage for guests (2hr TTL) and database for signed-in users
+- New `content_plans` database table with RLS
+- Visual indicators for days with planned content
 
-3. **Improve login error messages** (`src/routes/_app.login.tsx`):
-   - Map the technical "Email not confirmed" error to a friendlier message like "Please confirm your email before signing in."
-   - Map "Invalid login credentials" to "Incorrect email or password."
+### 4. Thumbnail Tool (`/thumbnail-tool`)
+- Input: paste a YouTube video URL
+- Extract and display the thumbnail using YouTube's public thumbnail URL pattern (`https://img.youtube.com/vi/VIDEO_ID/maxresdefault.jpg`)
+- Preview at different sizes (large, medium, small)
+- Download button for the thumbnail image
+- No API key needed -- YouTube thumbnail URLs are publicly accessible
 
-4. **Create a profiles table** via database migration to store user display names and preferences:
-   - Columns: `id` (uuid, FK to auth.users), `email` (text), `display_name` (text), `created_at`
-   - RLS policies: users can read/update only their own profile
-   - Trigger to auto-create a profile row on signup
+### 5. Settings Page Fix
+- Connect to actual auth data (show real email from user session)
+- Profile save updates the `profiles` table (display_name)
+- Show "Sign out" and "Delete account" options for signed-in users
 
-## Technical Notes
-- The `configure_auth` tool will be used with `enable_signup: true` and `double_confirm_email_changes: false` to allow immediate access.
-- Existing unconfirmed users (motivationalgen@gmail.com, bizmarrowhenry@gmail.com) will need to re-register or have their emails manually confirmed.
+### 6. Sidebar Update
+- Add new tool entries: Description Generator, Video Ideas, Content Planner, Thumbnail Tool
+- Group tools logically under "SEO Tools" and "Content Tools"
+
+### 7. Export Functionality
+- Add "Export as Text" button on Saved Projects page
+- Generates a .txt file download of all saved items
+
+## Database Changes
+- New migration: `content_plans` table with columns: `id`, `user_id`, `plan_date`, `title`, `notes`, `created_at`
+- RLS policies for authenticated users (CRUD on own rows)
+- Local storage fallback for guests with 2hr TTL
+
+## Files to Create
+- `src/routes/_app.description-generator.tsx`
+- `src/routes/_app.video-ideas.tsx`
+- `src/routes/_app.content-planner.tsx`
+- `src/routes/_app.thumbnail-tool.tsx`
+
+## Files to Modify
+- `src/components/AppSidebar.tsx` -- add new nav items
+- `src/routes/_app.settings.tsx` -- connect to auth data
+- `src/routes/_app.saved-projects.tsx` -- add export button
+- `src/lib/storage.ts` -- add content plan storage helpers
 
