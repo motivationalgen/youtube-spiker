@@ -40,8 +40,8 @@ function RegisterPage() {
     if (err) {
       setError(err);
     } else {
-      toast.success("Account created! Check your email to confirm.");
-      navigate({ to: "/login" });
+      toast.success("Account created! Welcome aboard.");
+      navigate({ to: "/dashboard" });
     }
   };
 
