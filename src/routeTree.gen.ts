@@ -15,6 +15,8 @@ import { Route as AppTitleGeneratorRouteImport } from './routes/_app.title-gener
 import { Route as AppTagGeneratorRouteImport } from './routes/_app.tag-generator'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppSavedProjectsRouteImport } from './routes/_app.saved-projects'
+import { Route as AppRegisterRouteImport } from './routes/_app.register'
+import { Route as AppLoginRouteImport } from './routes/_app.login'
 import { Route as AppKeywordResearchRouteImport } from './routes/_app.keyword-research'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 
@@ -47,6 +49,16 @@ const AppSavedProjectsRoute = AppSavedProjectsRouteImport.update({
   path: '/saved-projects',
   getParentRoute: () => AppRoute,
 } as any)
+const AppRegisterRoute = AppRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppLoginRoute = AppLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppKeywordResearchRoute = AppKeywordResearchRouteImport.update({
   id: '/keyword-research',
   path: '/keyword-research',
@@ -62,6 +74,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof AppDashboardRoute
   '/keyword-research': typeof AppKeywordResearchRoute
+  '/login': typeof AppLoginRoute
+  '/register': typeof AppRegisterRoute
   '/saved-projects': typeof AppSavedProjectsRoute
   '/settings': typeof AppSettingsRoute
   '/tag-generator': typeof AppTagGeneratorRoute
@@ -71,6 +85,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof AppDashboardRoute
   '/keyword-research': typeof AppKeywordResearchRoute
+  '/login': typeof AppLoginRoute
+  '/register': typeof AppRegisterRoute
   '/saved-projects': typeof AppSavedProjectsRoute
   '/settings': typeof AppSettingsRoute
   '/tag-generator': typeof AppTagGeneratorRoute
@@ -82,6 +98,8 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/keyword-research': typeof AppKeywordResearchRoute
+  '/_app/login': typeof AppLoginRoute
+  '/_app/register': typeof AppRegisterRoute
   '/_app/saved-projects': typeof AppSavedProjectsRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/tag-generator': typeof AppTagGeneratorRoute
@@ -93,6 +111,8 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/keyword-research'
+    | '/login'
+    | '/register'
     | '/saved-projects'
     | '/settings'
     | '/tag-generator'
@@ -102,6 +122,8 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/keyword-research'
+    | '/login'
+    | '/register'
     | '/saved-projects'
     | '/settings'
     | '/tag-generator'
@@ -112,6 +134,8 @@ export interface FileRouteTypes {
     | '/_app'
     | '/_app/dashboard'
     | '/_app/keyword-research'
+    | '/_app/login'
+    | '/_app/register'
     | '/_app/saved-projects'
     | '/_app/settings'
     | '/_app/tag-generator'
@@ -167,6 +191,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSavedProjectsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/register': {
+      id: '/_app/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof AppRegisterRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/login': {
+      id: '/_app/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof AppLoginRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/keyword-research': {
       id: '/_app/keyword-research'
       path: '/keyword-research'
@@ -187,6 +225,8 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppDashboardRoute: typeof AppDashboardRoute
   AppKeywordResearchRoute: typeof AppKeywordResearchRoute
+  AppLoginRoute: typeof AppLoginRoute
+  AppRegisterRoute: typeof AppRegisterRoute
   AppSavedProjectsRoute: typeof AppSavedProjectsRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppTagGeneratorRoute: typeof AppTagGeneratorRoute
@@ -196,6 +236,8 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppDashboardRoute: AppDashboardRoute,
   AppKeywordResearchRoute: AppKeywordResearchRoute,
+  AppLoginRoute: AppLoginRoute,
+  AppRegisterRoute: AppRegisterRoute,
   AppSavedProjectsRoute: AppSavedProjectsRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppTagGeneratorRoute: AppTagGeneratorRoute,
@@ -211,12 +253,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

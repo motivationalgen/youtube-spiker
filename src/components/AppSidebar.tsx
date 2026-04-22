@@ -1,4 +1,3 @@
-
 import {
   LayoutDashboard,
   Search,
@@ -7,6 +6,8 @@ import {
   FolderOpen,
   Settings,
   Play,
+  LogIn,
+  UserPlus,
 } from "lucide-react";
 import { Link, useLocation } from "@tanstack/react-router";
 import {
@@ -22,6 +23,7 @@ import {
   SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useAuth } from "@/hooks/use-auth";
 
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -40,6 +42,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const currentPath = location.pathname;
+  const { user } = useAuth();
 
   const isActive = (path: string) => currentPath === path;
 
@@ -102,6 +105,32 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {!user && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Account</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive("/login")} tooltip="Sign In">
+                    <Link to="/login">
+                      <LogIn className="h-4 w-4" />
+                      <span>Sign In</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive("/register")} tooltip="Sign Up">
+                    <Link to="/register">
+                      <UserPlus className="h-4 w-4" />
+                      <span>Sign Up</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="p-4">
