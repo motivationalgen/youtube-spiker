@@ -33,7 +33,11 @@ function LoginPage() {
     const { error: err } = await signIn(email, password);
     setLoading(false);
     if (err) {
-      setError(err);
+      const friendly: Record<string, string> = {
+        "Email not confirmed": "Please confirm your email before signing in.",
+        "Invalid login credentials": "Incorrect email or password.",
+      };
+      setError(friendly[err] ?? err);
     } else {
       toast.success("Welcome back!");
       navigate({ to: "/dashboard" });
