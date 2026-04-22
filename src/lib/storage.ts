@@ -91,12 +91,10 @@ export async function getDbItems(): Promise<SavedItem[]> {
 export async function saveDbItem(item: Omit<SavedItem, "id" | "savedAt">): Promise<SavedItem | null> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
+  const row = { user_id: user.id, type: item.type, content: item.content, meta: (item.meta ?? {}) as any };
   const { data, error } = await supabase
     .from("saved_items")
-    .upsert(
-      { user_id: user.id, type: item.type, content: item.content, meta: item.meta ?? {} },
-      { onConflict: "user_id,type,content" }
-    )
+    .upsert(row, { onConflict: "user_id,type,content" })
     .select()
     .single();
   if (error || !data) return null;
