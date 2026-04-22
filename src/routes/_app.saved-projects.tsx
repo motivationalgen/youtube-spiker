@@ -1,11 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FolderOpen, Search, Tags, Type, Trash2, Copy, Clock } from "lucide-react";
+import { FolderOpen, Search, Tags, Type, Trash2, Copy, Clock, LogIn, Timer } from "lucide-react";
 import { toast } from "sonner";
-import { getSavedItems, removeItem, type SavedItem } from "@/lib/storage";
+import { useAuth } from "@/hooks/use-auth";
+import { Link } from "@tanstack/react-router";
+import {
+  getLocalItems,
+  removeLocalItem,
+  getDbItems,
+  removeDbItem,
+  getTimeRemaining,
+  type SavedItem,
+} from "@/lib/storage";
 
 export const Route = createFileRoute("/_app/saved-projects")({
   component: SavedProjectsPage,
@@ -17,26 +26,6 @@ export const Route = createFileRoute("/_app/saved-projects")({
   }),
 });
 
-function timeAgo(ts: number): string {
-  const diff = Date.now() - ts;
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  return `${hrs}h ago`;
-}
-
-function timeRemaining(ts: number): string {
-  const TTL = 2 * 60 * 60 * 1000;
-  const remaining = TTL - (Date.now() - ts);
-  if (remaining <= 0) return "expiring...";
-  const mins = Math.floor(remaining / 60000);
-  if (mins < 60) return `${mins}m left`;
-  const hrs = Math.floor(mins / 60);
-  const remMins = mins % 60;
-  return `${hrs}h ${remMins}m left`;
-}
-
 const typeConfig = {
   keyword: { label: "Keywords", icon: Search, color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" },
   tag: { label: "Tags", icon: Tags, color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
@@ -44,12 +33,37 @@ const typeConfig = {
 };
 
 function SavedProjectsPage() {
+  const { user, loading: authLoading } = useAuth();
   const [items, setItems] = useState<SavedItem[]>([]);
   const [filter, setFilter] = useState<"all" | "keyword" | "tag" | "title">("all");
+  const [loadingItems, setLoadingItems] = useState(true);
+  const [, setTick] = useState(0);
+
+  const loadItems = useCallback(async () => {
+    setLoadingItems(true);
+    if (user) {
+      const dbItems = await getDbItems();
+      setItems(dbItems);
+    } else {
+      setItems(getLocalItems());
+    }
+    setLoadingItems(false);
+  }, [user]);
 
   useEffect(() => {
-    setItems(getSavedItems());
-  }, []);
+    if (!authLoading) loadItems();
+  }, [authLoading, loadItems]);
+
+  // Countdown timer for guest users - tick every second
+  useEffect(() => {
+    if (user) return;
+    const interval = setInterval(() => {
+      setTick((t) => t + 1);
+      // Also prune expired
+      if (!user) setItems(getLocalItems());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   const filtered = filter === "all" ? items : items.filter((i) => i.type === filter);
   const counts = {
@@ -58,9 +72,13 @@ function SavedProjectsPage() {
     title: items.filter((i) => i.type === "title").length,
   };
 
-  const handleDelete = (id: string) => {
-    removeItem(id);
-    setItems(getSavedItems());
+  const handleDelete = async (id: string) => {
+    if (user) {
+      await removeDbItem(id);
+    } else {
+      removeLocalItem(id);
+    }
+    await loadItems();
     toast.success("Item removed");
   };
 
@@ -76,12 +94,25 @@ function SavedProjectsPage() {
         <p className="text-muted-foreground mt-1">
           All your saved keywords, tags, and titles in one place
         </p>
-        <div className="flex items-center gap-2 mt-2">
-          <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-          <p className="text-xs text-muted-foreground">
-            Records auto-expire after 2 hours. Sign in to keep them permanently.
-          </p>
-        </div>
+        {!user && (
+          <div className="flex items-center gap-2 mt-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-3">
+            <Timer className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
+                Guest mode — records expire in 2 hours
+              </p>
+              <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
+                Sign in to keep your saved items permanently.
+              </p>
+            </div>
+            <Button variant="outline" size="sm" asChild className="shrink-0 border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-300">
+              <Link to="/register">
+                <LogIn className="mr-1.5 h-3.5 w-3.5" />
+                Sign Up
+              </Link>
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
@@ -118,7 +149,13 @@ function SavedProjectsPage() {
         ))}
       </div>
 
-      {filtered.length === 0 ? (
+      {loadingItems ? (
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => (
+            <Card key={i}><CardContent className="h-14 animate-pulse bg-muted/30 p-3" /></Card>
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <FolderOpen className="h-12 w-12 text-muted-foreground/40 mb-3" />
@@ -132,6 +169,7 @@ function SavedProjectsPage() {
         <div className="space-y-2">
           {filtered.map((item) => {
             const cfg = typeConfig[item.type];
+            const countdown = !user ? getTimeRemaining(item.savedAt) : null;
             return (
               <Card key={item.id} className="group">
                 <CardContent className="flex items-center gap-3 p-3">
@@ -139,7 +177,19 @@ function SavedProjectsPage() {
                     {cfg.label.slice(0, -1)}
                   </Badge>
                   <p className="flex-1 text-sm font-medium truncate">{item.content}</p>
-                  <span className="text-xs text-muted-foreground whitespace-nowrap">{timeRemaining(item.savedAt)}</span>
+                  {countdown && (
+                    <span className={`flex items-center gap-1 text-xs font-mono whitespace-nowrap ${
+                      countdown.expired ? "text-destructive" : "text-amber-600 dark:text-amber-400"
+                    }`}>
+                      <Clock className="h-3 w-3" />
+                      {countdown.text}
+                    </span>
+                  )}
+                  {user && (
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">
+                      ✓ Saved permanently
+                    </span>
+                  )}
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopy(item.content)}>
                       <Copy className="h-3.5 w-3.5" />
