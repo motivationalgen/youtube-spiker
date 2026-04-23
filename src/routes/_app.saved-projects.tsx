@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FolderOpen, Search, Tags, Type, Trash2, Copy, Clock, LogIn, Timer } from "lucide-react";
+import { FolderOpen, Search, Tags, Type, Trash2, Copy, Clock, LogIn, Timer, Download } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { Link } from "@tanstack/react-router";
@@ -91,9 +91,29 @@ function SavedProjectsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Saved Projects</h1>
-        <p className="text-muted-foreground mt-1">
-          All your saved keywords, tags, and titles in one place
-        </p>
+        <div className="flex items-center justify-between">
+          <p className="text-muted-foreground mt-1">
+            All your saved keywords, tags, and titles in one place
+          </p>
+          {items.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const text = items.map((i) => `[${i.type.toUpperCase()}] ${i.content}`).join("\n");
+                const blob = new Blob([text], { type: "text/plain" });
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = "saved-projects.txt";
+                a.click();
+                URL.revokeObjectURL(a.href);
+                toast.success("Exported!");
+              }}
+            >
+              <Download className="mr-1.5 h-3.5 w-3.5" /> Export
+            </Button>
+          )}
+        </div>
         {!user && (
           <div className="flex items-center gap-2 mt-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-3">
             <Timer className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />

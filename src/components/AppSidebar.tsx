@@ -3,11 +3,15 @@ import {
   Search,
   Tags,
   Type,
+  FileText,
   FolderOpen,
   Settings,
   Play,
   LogIn,
   UserPlus,
+  Lightbulb,
+  CalendarDays,
+  Image,
 } from "lucide-react";
 import { Link, useLocation } from "@tanstack/react-router";
 import {
@@ -25,11 +29,17 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
 
-const mainItems = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+const seoTools = [
   { title: "Keyword Research", url: "/keyword-research", icon: Search },
   { title: "Tag Generator", url: "/tag-generator", icon: Tags },
   { title: "Title Generator", url: "/title-generator", icon: Type },
+  { title: "Description Generator", url: "/description-generator", icon: FileText },
+  { title: "Thumbnail Tool", url: "/thumbnail-tool", icon: Image },
+];
+
+const contentTools = [
+  { title: "Video Ideas", url: "/video-ideas", icon: Lightbulb },
+  { title: "Content Planner", url: "/content-planner", icon: CalendarDays },
 ];
 
 const manageItems = [
@@ -45,6 +55,26 @@ export function AppSidebar() {
   const { user } = useAuth();
 
   const isActive = (path: string) => currentPath === path;
+
+  const renderGroup = (label: string, items: typeof seoTools) => (
+    <SidebarGroup>
+      <SidebarGroupLabel>{label}</SidebarGroupLabel>
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {items.map((item) => (
+            <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
+                <Link to={item.url}>
+                  <item.icon className="h-4 w-4" />
+                  <span>{item.title}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
 
   return (
     <Sidebar collapsible="icon">
@@ -63,48 +93,23 @@ export function AppSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Tools</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                    tooltip={item.title}
-                  >
-                    <Link to={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive("/dashboard")} tooltip="Dashboard">
+                  <Link to="/dashboard">
+                    <LayoutDashboard className="h-4 w-4" />
+                    <span>Dashboard</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Manage</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {manageItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                    tooltip={item.title}
-                  >
-                    <Link to={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {renderGroup("SEO Tools", seoTools)}
+        {renderGroup("Content Tools", contentTools)}
+        {renderGroup("Manage", manageItems)}
 
         {!user && (
           <SidebarGroup>
