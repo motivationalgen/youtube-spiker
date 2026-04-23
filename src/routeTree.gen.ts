@@ -11,14 +11,18 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppVideoIdeasRouteImport } from './routes/_app.video-ideas'
 import { Route as AppTitleGeneratorRouteImport } from './routes/_app.title-generator'
+import { Route as AppThumbnailToolRouteImport } from './routes/_app.thumbnail-tool'
 import { Route as AppTagGeneratorRouteImport } from './routes/_app.tag-generator'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppSavedProjectsRouteImport } from './routes/_app.saved-projects'
 import { Route as AppRegisterRouteImport } from './routes/_app.register'
 import { Route as AppLoginRouteImport } from './routes/_app.login'
 import { Route as AppKeywordResearchRouteImport } from './routes/_app.keyword-research'
+import { Route as AppDescriptionGeneratorRouteImport } from './routes/_app.description-generator'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
+import { Route as AppContentPlannerRouteImport } from './routes/_app.content-planner'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -29,9 +33,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppVideoIdeasRoute = AppVideoIdeasRouteImport.update({
+  id: '/video-ideas',
+  path: '/video-ideas',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppTitleGeneratorRoute = AppTitleGeneratorRouteImport.update({
   id: '/title-generator',
   path: '/title-generator',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppThumbnailToolRoute = AppThumbnailToolRouteImport.update({
+  id: '/thumbnail-tool',
+  path: '/thumbnail-tool',
   getParentRoute: () => AppRoute,
 } as any)
 const AppTagGeneratorRoute = AppTagGeneratorRouteImport.update({
@@ -64,82 +78,116 @@ const AppKeywordResearchRoute = AppKeywordResearchRouteImport.update({
   path: '/keyword-research',
   getParentRoute: () => AppRoute,
 } as any)
+const AppDescriptionGeneratorRoute = AppDescriptionGeneratorRouteImport.update({
+  id: '/description-generator',
+  path: '/description-generator',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
   getParentRoute: () => AppRoute,
 } as any)
+const AppContentPlannerRoute = AppContentPlannerRouteImport.update({
+  id: '/content-planner',
+  path: '/content-planner',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/content-planner': typeof AppContentPlannerRoute
   '/dashboard': typeof AppDashboardRoute
+  '/description-generator': typeof AppDescriptionGeneratorRoute
   '/keyword-research': typeof AppKeywordResearchRoute
   '/login': typeof AppLoginRoute
   '/register': typeof AppRegisterRoute
   '/saved-projects': typeof AppSavedProjectsRoute
   '/settings': typeof AppSettingsRoute
   '/tag-generator': typeof AppTagGeneratorRoute
+  '/thumbnail-tool': typeof AppThumbnailToolRoute
   '/title-generator': typeof AppTitleGeneratorRoute
+  '/video-ideas': typeof AppVideoIdeasRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/content-planner': typeof AppContentPlannerRoute
   '/dashboard': typeof AppDashboardRoute
+  '/description-generator': typeof AppDescriptionGeneratorRoute
   '/keyword-research': typeof AppKeywordResearchRoute
   '/login': typeof AppLoginRoute
   '/register': typeof AppRegisterRoute
   '/saved-projects': typeof AppSavedProjectsRoute
   '/settings': typeof AppSettingsRoute
   '/tag-generator': typeof AppTagGeneratorRoute
+  '/thumbnail-tool': typeof AppThumbnailToolRoute
   '/title-generator': typeof AppTitleGeneratorRoute
+  '/video-ideas': typeof AppVideoIdeasRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
+  '/_app/content-planner': typeof AppContentPlannerRoute
   '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/description-generator': typeof AppDescriptionGeneratorRoute
   '/_app/keyword-research': typeof AppKeywordResearchRoute
   '/_app/login': typeof AppLoginRoute
   '/_app/register': typeof AppRegisterRoute
   '/_app/saved-projects': typeof AppSavedProjectsRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/tag-generator': typeof AppTagGeneratorRoute
+  '/_app/thumbnail-tool': typeof AppThumbnailToolRoute
   '/_app/title-generator': typeof AppTitleGeneratorRoute
+  '/_app/video-ideas': typeof AppVideoIdeasRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/content-planner'
     | '/dashboard'
+    | '/description-generator'
     | '/keyword-research'
     | '/login'
     | '/register'
     | '/saved-projects'
     | '/settings'
     | '/tag-generator'
+    | '/thumbnail-tool'
     | '/title-generator'
+    | '/video-ideas'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/content-planner'
     | '/dashboard'
+    | '/description-generator'
     | '/keyword-research'
     | '/login'
     | '/register'
     | '/saved-projects'
     | '/settings'
     | '/tag-generator'
+    | '/thumbnail-tool'
     | '/title-generator'
+    | '/video-ideas'
   id:
     | '__root__'
     | '/'
     | '/_app'
+    | '/_app/content-planner'
     | '/_app/dashboard'
+    | '/_app/description-generator'
     | '/_app/keyword-research'
     | '/_app/login'
     | '/_app/register'
     | '/_app/saved-projects'
     | '/_app/settings'
     | '/_app/tag-generator'
+    | '/_app/thumbnail-tool'
     | '/_app/title-generator'
+    | '/_app/video-ideas'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -163,11 +211,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/video-ideas': {
+      id: '/_app/video-ideas'
+      path: '/video-ideas'
+      fullPath: '/video-ideas'
+      preLoaderRoute: typeof AppVideoIdeasRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/title-generator': {
       id: '/_app/title-generator'
       path: '/title-generator'
       fullPath: '/title-generator'
       preLoaderRoute: typeof AppTitleGeneratorRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/thumbnail-tool': {
+      id: '/_app/thumbnail-tool'
+      path: '/thumbnail-tool'
+      fullPath: '/thumbnail-tool'
+      preLoaderRoute: typeof AppThumbnailToolRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/tag-generator': {
@@ -212,6 +274,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppKeywordResearchRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/description-generator': {
+      id: '/_app/description-generator'
+      path: '/description-generator'
+      fullPath: '/description-generator'
+      preLoaderRoute: typeof AppDescriptionGeneratorRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/dashboard': {
       id: '/_app/dashboard'
       path: '/dashboard'
@@ -219,29 +288,44 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/content-planner': {
+      id: '/_app/content-planner'
+      path: '/content-planner'
+      fullPath: '/content-planner'
+      preLoaderRoute: typeof AppContentPlannerRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppContentPlannerRoute: typeof AppContentPlannerRoute
   AppDashboardRoute: typeof AppDashboardRoute
+  AppDescriptionGeneratorRoute: typeof AppDescriptionGeneratorRoute
   AppKeywordResearchRoute: typeof AppKeywordResearchRoute
   AppLoginRoute: typeof AppLoginRoute
   AppRegisterRoute: typeof AppRegisterRoute
   AppSavedProjectsRoute: typeof AppSavedProjectsRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppTagGeneratorRoute: typeof AppTagGeneratorRoute
+  AppThumbnailToolRoute: typeof AppThumbnailToolRoute
   AppTitleGeneratorRoute: typeof AppTitleGeneratorRoute
+  AppVideoIdeasRoute: typeof AppVideoIdeasRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppContentPlannerRoute: AppContentPlannerRoute,
   AppDashboardRoute: AppDashboardRoute,
+  AppDescriptionGeneratorRoute: AppDescriptionGeneratorRoute,
   AppKeywordResearchRoute: AppKeywordResearchRoute,
   AppLoginRoute: AppLoginRoute,
   AppRegisterRoute: AppRegisterRoute,
   AppSavedProjectsRoute: AppSavedProjectsRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppTagGeneratorRoute: AppTagGeneratorRoute,
+  AppThumbnailToolRoute: AppThumbnailToolRoute,
   AppTitleGeneratorRoute: AppTitleGeneratorRoute,
+  AppVideoIdeasRoute: AppVideoIdeasRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

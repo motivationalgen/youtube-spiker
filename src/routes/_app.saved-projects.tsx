@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FolderOpen, Search, Tags, Type, Trash2, Copy, Clock, LogIn, Timer } from "lucide-react";
+import { FolderOpen, Search, Tags, Type, Trash2, Copy, Clock, LogIn, Timer, Download } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { Link } from "@tanstack/react-router";
