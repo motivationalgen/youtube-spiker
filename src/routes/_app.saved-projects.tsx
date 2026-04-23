@@ -54,12 +54,10 @@ function SavedProjectsPage() {
     if (!authLoading) loadItems();
   }, [authLoading, loadItems]);
 
-  // Countdown timer for guest users - tick every second
   useEffect(() => {
     if (user) return;
     const interval = setInterval(() => {
       setTick((t) => t + 1);
-      // Also prune expired
       if (!user) setItems(getLocalItems());
     }, 1000);
     return () => clearInterval(interval);
@@ -87,37 +85,35 @@ function SavedProjectsPage() {
     toast.success("Copied!");
   };
 
+  const handleExport = () => {
+    const text = items.map((i) => `[${i.type.toUpperCase()}] ${i.content}`).join("\n");
+    const blob = new Blob([text], { type: "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "saved-projects.txt";
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast.success("Exported!");
+  };
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Saved Projects</h1>
-        <div className="flex items-center justify-between">
-          <p className="text-muted-foreground mt-1">
-            All your saved keywords, tags, and titles in one place
-          </p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h1 className="text-2xl font-bold tracking-tight">Saved Projects</h1>
           {items.length > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const text = items.map((i) => `[${i.type.toUpperCase()}] ${i.content}`).join("\n");
-                const blob = new Blob([text], { type: "text/plain" });
-                const a = document.createElement("a");
-                a.href = URL.createObjectURL(blob);
-                a.download = "saved-projects.txt";
-                a.click();
-                URL.revokeObjectURL(a.href);
-                toast.success("Exported!");
-              }}
-            >
+            <Button variant="outline" size="sm" onClick={handleExport}>
               <Download className="mr-1.5 h-3.5 w-3.5" /> Export
             </Button>
           )}
         </div>
+        <p className="text-muted-foreground mt-1">
+          All your saved keywords, tags, and titles in one place
+        </p>
         {!user && (
-          <div className="flex items-center gap-2 mt-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-3">
+          <div className="flex flex-wrap items-center gap-2 mt-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-3">
             <Timer className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
                 Guest mode — records expire in 2 hours
               </p>
@@ -135,7 +131,7 @@ function SavedProjectsPage() {
         )}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
         {(["keyword", "tag", "title"] as const).map((type) => {
           const cfg = typeConfig[type];
           return (
@@ -154,8 +150,7 @@ function SavedProjectsPage() {
         })}
       </div>
 
-      {/* Filter tabs */}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         {(["all", "keyword", "tag", "title"] as const).map((f) => (
           <button
             key={f}
@@ -192,11 +187,11 @@ function SavedProjectsPage() {
             const countdown = !user ? getTimeRemaining(item.savedAt) : null;
             return (
               <Card key={item.id} className="group">
-                <CardContent className="flex items-center gap-3 p-3">
-                  <Badge variant="secondary" className={`${cfg.color} text-xs`}>
+                <CardContent className="flex flex-wrap items-center gap-2 p-3 sm:flex-nowrap sm:gap-3">
+                  <Badge variant="secondary" className={`${cfg.color} text-xs shrink-0`}>
                     {cfg.label.slice(0, -1)}
                   </Badge>
-                  <p className="flex-1 text-sm font-medium truncate">{item.content}</p>
+                  <p className="flex-1 text-sm font-medium truncate min-w-0">{item.content}</p>
                   {countdown && (
                     <span className={`flex items-center gap-1 text-xs font-mono whitespace-nowrap ${
                       countdown.expired ? "text-destructive" : "text-amber-600 dark:text-amber-400"
@@ -210,7 +205,7 @@ function SavedProjectsPage() {
                       ✓ Saved permanently
                     </span>
                   )}
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopy(item.content)}>
                       <Copy className="h-3.5 w-3.5" />
                     </Button>

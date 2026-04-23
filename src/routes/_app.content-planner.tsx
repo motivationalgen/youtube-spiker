@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { CalendarDays, Plus, ChevronLeft, ChevronRight, Trash2, Timer, LogIn } from "lucide-react";
+import { CalendarDays, Plus, ChevronLeft, ChevronRight, Trash2, Timer, List, AlignLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { Link } from "@tanstack/react-router";
@@ -30,7 +30,7 @@ export const Route = createFileRoute("/_app/content-planner")({
 
 interface PlanItem {
   id: string;
-  date: string; // YYYY-MM-DD
+  date: string;
   title: string;
   notes: string;
   savedAt: number;
@@ -65,6 +65,9 @@ function removeLocalPlan(id: string) {
   localStorage.setItem(LOCAL_KEY, JSON.stringify(plans));
 }
 
+const DAY_LABELS_FULL = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DAY_LABELS_SHORT = ["S", "M", "T", "W", "T", "F", "S"];
+
 function ContentPlannerPage() {
   const { user } = useAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -73,6 +76,7 @@ function ContentPlannerPage() {
   const [newTitle, setNewTitle] = useState("");
   const [newNotes, setNewNotes] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [listMode, setListMode] = useState(false);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -109,6 +113,38 @@ function ContentPlannerPage() {
   const dateStr = (day: number) => `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
   const plansForDay = (day: number) => plans.filter((p) => p.date === dateStr(day));
 
+  const handleNotesChange = (value: string) => {
+    if (!listMode) {
+      setNewNotes(value);
+      return;
+    }
+    // In list mode, ensure each line starts with bullet
+    const lines = value.split("\n");
+    const formatted = lines.map((line) => {
+      const trimmed = line.replace(/^•\s*/, "");
+      return trimmed.length > 0 || line === "" ? (line === "" ? "" : `• ${trimmed}`) : "";
+    }).join("\n");
+    setNewNotes(formatted);
+  };
+
+  const toggleListMode = () => {
+    if (!listMode) {
+      // Convert current text to bullet list
+      const lines = newNotes.split("\n").filter(Boolean);
+      const formatted = lines.map((line) => {
+        const trimmed = line.replace(/^•\s*/, "");
+        return `• ${trimmed}`;
+      }).join("\n");
+      setNewNotes(formatted);
+    } else {
+      // Convert bullets back to plain text
+      const lines = newNotes.split("\n");
+      const plain = lines.map((line) => line.replace(/^•\s*/, "")).join("\n");
+      setNewNotes(plain);
+    }
+    setListMode(!listMode);
+  };
+
   const handleAdd = async () => {
     if (!selectedDate || !newTitle.trim()) {
       toast.error("Please enter a title");
@@ -126,6 +162,7 @@ function ContentPlannerPage() {
     }
     setNewTitle("");
     setNewNotes("");
+    setListMode(false);
     setDialogOpen(false);
     await loadPlans();
     toast.success("Content plan added!");
@@ -141,7 +178,7 @@ function ContentPlannerPage() {
     toast.success("Plan removed");
   };
 
-  const days = [];
+  const days: (number | null)[] = [];
   for (let i = 0; i < firstDay; i++) days.push(null);
   for (let d = 1; d <= daysInMonth; d++) days.push(d);
 
@@ -151,7 +188,7 @@ function ContentPlannerPage() {
         <h1 className="text-2xl font-bold tracking-tight">Content Planner</h1>
         <p className="text-muted-foreground mt-1">Plan and schedule your upcoming content</p>
         {!user && (
-          <div className="flex items-center gap-2 mt-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-3">
+          <div className="flex flex-wrap items-center gap-2 mt-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-3">
             <Timer className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
             <p className="text-sm text-amber-800 dark:text-amber-300 flex-1">
               Guest mode — plans expire in 2 hours. <Link to="/register" className="underline font-medium">Sign up</Link> to save permanently.
@@ -176,8 +213,11 @@ function ContentPlannerPage() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-muted-foreground mb-2">
-            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-              <div key={d} className="py-1">{d}</div>
+            {DAY_LABELS_FULL.map((d, i) => (
+              <div key={d + i} className="py-1">
+                <span className="hidden sm:inline">{d}</span>
+                <span className="sm:hidden">{DAY_LABELS_SHORT[i]}</span>
+              </div>
             ))}
           </div>
           <div className="grid grid-cols-7 gap-1">
@@ -195,7 +235,7 @@ function ContentPlannerPage() {
                 }}>
                   <DialogTrigger asChild>
                     <button
-                      className={`relative min-h-[60px] rounded-md border p-1 text-left text-xs transition-colors hover:bg-accent ${
+                      className={`relative min-h-[44px] sm:min-h-[60px] rounded-md border p-1 text-left text-xs transition-colors hover:bg-accent ${
                         isToday ? "border-primary bg-primary/5" : "border-border"
                       }`}
                       onClick={() => setSelectedDate(dateStr(day))}
@@ -203,14 +243,19 @@ function ContentPlannerPage() {
                       <span className={`font-medium ${isToday ? "text-primary" : ""}`}>{day}</span>
                       {dayPlans.length > 0 && (
                         <div className="mt-0.5 space-y-0.5">
-                          {dayPlans.slice(0, 2).map((p) => (
-                            <div key={p.id} className="truncate rounded bg-primary/10 px-1 text-[10px] text-primary">
-                              {p.title}
-                            </div>
-                          ))}
-                          {dayPlans.length > 2 && (
-                            <div className="text-[10px] text-muted-foreground">+{dayPlans.length - 2} more</div>
-                          )}
+                          <div className="hidden sm:block">
+                            {dayPlans.slice(0, 2).map((p) => (
+                              <div key={p.id} className="truncate rounded bg-primary/10 px-1 text-[10px] text-primary">
+                                {p.title}
+                              </div>
+                            ))}
+                            {dayPlans.length > 2 && (
+                              <div className="text-[10px] text-muted-foreground">+{dayPlans.length - 2} more</div>
+                            )}
+                          </div>
+                          <div className="sm:hidden">
+                            <div className="h-1.5 w-1.5 rounded-full bg-primary mx-auto" />
+                          </div>
                         </div>
                       )}
                     </button>
@@ -224,9 +269,11 @@ function ContentPlannerPage() {
                         <div className="space-y-2">
                           {dayPlans.map((p) => (
                             <div key={p.id} className="flex items-start gap-2 rounded-lg border p-2">
-                              <div className="flex-1">
+                              <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium">{p.title}</p>
-                                {p.notes && <p className="text-xs text-muted-foreground mt-0.5">{p.notes}</p>}
+                                {p.notes && (
+                                  <p className="text-xs text-muted-foreground mt-0.5 whitespace-pre-line">{p.notes}</p>
+                                )}
                               </div>
                               <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive shrink-0" onClick={() => handleDelete(p.id)}>
                                 <Trash2 className="h-3.5 w-3.5" />
@@ -241,8 +288,24 @@ function ContentPlannerPage() {
                           <Input placeholder="Video title or idea" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} />
                         </div>
                         <div className="space-y-2">
-                          <Label>Notes (optional)</Label>
-                          <Textarea placeholder="Additional notes..." value={newNotes} onChange={(e) => setNewNotes(e.target.value)} className="min-h-[60px]" />
+                          <div className="flex items-center justify-between">
+                            <Label>Notes (optional)</Label>
+                            <Button
+                              variant={listMode ? "default" : "outline"}
+                              size="sm"
+                              className="h-7 text-xs gap-1.5"
+                              onClick={toggleListMode}
+                            >
+                              {listMode ? <List className="h-3.5 w-3.5" /> : <AlignLeft className="h-3.5 w-3.5" />}
+                              {listMode ? "List" : "Text"}
+                            </Button>
+                          </div>
+                          <Textarea
+                            placeholder={listMode ? "• Item 1\n• Item 2\n• Item 3" : "Additional notes..."}
+                            value={newNotes}
+                            onChange={(e) => handleNotesChange(e.target.value)}
+                            className="min-h-[80px]"
+                          />
                         </div>
                         <Button onClick={handleAdd} className="w-full">
                           <Plus className="mr-2 h-4 w-4" /> Add Plan
