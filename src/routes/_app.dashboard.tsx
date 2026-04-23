@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, Tags, Type, TrendingUp, FileText, Bookmark } from "lucide-react";
+import { Search, Tags, Type, TrendingUp, FileText, Bookmark, Image, Lightbulb, CalendarDays, FileEdit } from "lucide-react";
 import { getItemsByType } from "@/lib/storage";
 
 export const Route = createFileRoute("/_app/dashboard")({
@@ -36,6 +36,34 @@ const tools = [
     url: "/title-generator",
     color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
   },
+  {
+    title: "Description Generator",
+    description: "Create SEO-optimized YouTube descriptions",
+    icon: FileEdit,
+    url: "/description-generator",
+    color: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
+  },
+  {
+    title: "Video Ideas",
+    description: "Get viral video ideas for your niche",
+    icon: Lightbulb,
+    url: "/video-ideas",
+    color: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+  },
+  {
+    title: "Content Planner",
+    description: "Plan and schedule your uploads",
+    icon: CalendarDays,
+    url: "/content-planner",
+    color: "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400",
+  },
+  {
+    title: "Thumbnail Tool",
+    description: "Extract and preview video thumbnails",
+    icon: Image,
+    url: "/thumbnail-tool",
+    color: "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400",
+  },
 ];
 
 function DashboardPage() {
@@ -64,7 +92,7 @@ function DashboardPage() {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
         {statsData.map((stat) => (
           <Card key={stat.label}>
             <CardContent className="flex items-center gap-4 p-4">
@@ -82,7 +110,7 @@ function DashboardPage() {
 
       <div>
         <h2 className="text-lg font-semibold mb-3">Quick Access</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {tools.map((tool) => (
             <Link key={tool.title} to={tool.url}>
               <Card className="group cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5">
