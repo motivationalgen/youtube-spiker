@@ -1,63 +1,57 @@
 
 
-# Add Missing Features to YouTube Growth Suite
+# Dashboard, Responsiveness, Content Planner & Description Generator Enhancements
 
-## What We Have
-Dashboard, Keyword Research, Tag Generator, Title Generator, Saved Projects, Settings, Auth (email/password), Dark Mode.
+## 1. Dashboard — Add All Tools to Home Page
 
-## What's Missing (from the master prompt)
+Update `src/routes/_app.dashboard.tsx` to list all 7 tools (not just 3):
+- Keyword Research, Tag Generator, Title Generator, Description Generator, Video Ideas, Content Planner, Thumbnail Tool
+- Use a responsive grid: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`
+- Each tool card keeps its icon, title, description, and color
 
-### 1. Description Generator (`/description-generator`)
-- Input fields: video title, keywords (comma-separated), tone selector (professional, casual, educational, entertaining)
-- Output: a full mock YouTube description with hooks, keywords, hashtags, and social links placeholder
-- Copy button, save to projects functionality
+## 2. Responsive Fixes Across Pages
 
-### 2. Video Idea Generator (`/video-ideas`)
-- Input: niche/category dropdown (Gaming, Tech, Education, Lifestyle, Finance, Cooking, Fitness, etc.)
-- Output: 8-10 mock video ideas with estimated potential (High/Medium/Low)
-- Save individual ideas, copy functionality
+**`src/routes/_app.saved-projects.tsx`**:
+- Make the header flex wrap on mobile (`flex-wrap`)
+- Stats grid: `grid-cols-1 sm:grid-cols-3`
+- Item cards: stack content vertically on mobile, show action buttons always on touch (not just hover)
+- Export button moves below title on small screens
 
-### 3. Content Planner (`/content-planner`)
-- Calendar-based monthly view
-- Users can add content ideas to specific dates (title + notes)
-- Data stored in localStorage for guests (2hr TTL) and database for signed-in users
-- New `content_plans` database table with RLS
-- Visual indicators for days with planned content
+**`src/routes/_app.dashboard.tsx`**:
+- Stats grid already responsive; ensure tool grid uses `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`
 
-### 4. Thumbnail Tool (`/thumbnail-tool`)
-- Input: paste a YouTube video URL
-- Extract and display the thumbnail using YouTube's public thumbnail URL pattern (`https://img.youtube.com/vi/VIDEO_ID/maxresdefault.jpg`)
-- Preview at different sizes (large, medium, small)
-- Download button for the thumbnail image
-- No API key needed -- YouTube thumbnail URLs are publicly accessible
+**`src/routes/_app.content-planner.tsx`**:
+- Calendar day cells: reduce `min-h` on mobile
+- Day labels: abbreviate to single letters on mobile (`S M T W T F S`)
 
-### 5. Settings Page Fix
-- Connect to actual auth data (show real email from user session)
-- Profile save updates the `profiles` table (display_name)
-- Show "Sign out" and "Delete account" options for signed-in users
+**`src/routes/_app.description-generator.tsx`**:
+- Remove `max-w-3xl` constraint so it fills available width on mobile
+- Output card header: stack title and buttons vertically on small screens
 
-### 6. Sidebar Update
-- Add new tool entries: Description Generator, Video Ideas, Content Planner, Thumbnail Tool
-- Group tools logically under "SEO Tools" and "Content Tools"
+**General**: Ensure all tool pages use full width on mobile with proper padding.
 
-### 7. Export Functionality
-- Add "Export as Text" button on Saved Projects page
-- Generates a .txt file download of all saved items
+## 3. Content Planner — List Option in Notes
 
-## Database Changes
-- New migration: `content_plans` table with columns: `id`, `user_id`, `plan_date`, `title`, `notes`, `created_at`
-- RLS policies for authenticated users (CRUD on own rows)
-- Local storage fallback for guests with 2hr TTL
+Update `src/routes/_app.content-planner.tsx`:
+- Add a "List" toggle button (icon: `List`) next to the Notes textarea
+- When toggled ON, the textarea input converts each new line into a bullet point (`• `) automatically
+- Store notes as-is (with bullet prefixes) in DB/localStorage
+- Display notes with bullet formatting in the plan item view
+- Button toggles between "List mode" and "Text mode" with visual indicator
 
-## Files to Create
-- `src/routes/_app.description-generator.tsx`
-- `src/routes/_app.video-ideas.tsx`
-- `src/routes/_app.content-planner.tsx`
-- `src/routes/_app.thumbnail-tool.tsx`
+## 4. Description Generator — Video Duration & Word Count (Registered Users)
+
+Update `src/routes/_app.description-generator.tsx`:
+- Add two new fields visible only to registered users (`user` is truthy):
+  - **Video Duration**: number input (minutes) — used to generate proportional timestamps in the output (e.g., a 20-min video gets timestamps spread across 0:00–20:00)
+  - **Word Count Target**: number input — the generator adjusts output length to approximate this word count by adding/reducing filler sections
+- Timestamps in the generated description use `MM:SS` format derived from the duration input
+- When user is not logged in, these fields are hidden and the current static timestamps remain
+- Update `generateDescription()` to accept optional `durationMinutes` and `targetWords` params
 
 ## Files to Modify
-- `src/components/AppSidebar.tsx` -- add new nav items
-- `src/routes/_app.settings.tsx` -- connect to auth data
-- `src/routes/_app.saved-projects.tsx` -- add export button
-- `src/lib/storage.ts` -- add content plan storage helpers
+- `src/routes/_app.dashboard.tsx` — add all 7 tools
+- `src/routes/_app.saved-projects.tsx` — responsive layout fixes
+- `src/routes/_app.content-planner.tsx` — list toggle in notes, mobile responsiveness
+- `src/routes/_app.description-generator.tsx` — duration/word count fields, responsive layout
 
