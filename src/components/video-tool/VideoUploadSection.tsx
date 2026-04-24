@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Upload, Film, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,6 @@ type Props = {
 };
 
 export function VideoUploadSection({ file, previewUrl, metadata, onVideoReady, onError }: Props) {
-  const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
 
   const handleFile = (selected?: File) => {
@@ -57,9 +56,7 @@ export function VideoUploadSection({ file, previewUrl, metadata, onVideoReady, o
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <button
-          type="button"
-          onClick={() => inputRef.current?.click()}
+        <label
           onDragEnter={(e) => { e.preventDefault(); setDragging(true); }}
           onDragOver={(e) => e.preventDefault()}
           onDragLeave={() => setDragging(false)}
@@ -68,13 +65,13 @@ export function VideoUploadSection({ file, previewUrl, metadata, onVideoReady, o
             setDragging(false);
             handleFile(e.dataTransfer.files[0]);
           }}
-          className={`w-full rounded-xl border border-dashed p-6 text-center transition ${dragging ? "border-primary bg-primary/10" : "border-border bg-muted/30 hover:bg-muted/50"}`}
+          className={`relative block w-full cursor-pointer rounded-xl border border-dashed p-6 text-center transition ${dragging ? "border-primary bg-primary/10" : "border-border bg-muted/30 hover:bg-muted/50"}`}
         >
+          <input type="file" accept=".mp4,.mov,.avi,.mkv,.webm,video/*" className="absolute inset-0 h-full w-full cursor-pointer opacity-0" onChange={(e) => handleFile(e.target.files?.[0])} />
           <Film className="mx-auto mb-3 h-10 w-10 text-primary" />
           <span className="block text-sm font-medium">Drop your video here or click to upload</span>
           <span className="mt-1 block text-xs text-muted-foreground">MP4, MOV, AVI, MKV, WEBM up to 700 MB</span>
-        </button>
-        <input ref={inputRef} type="file" accept=".mp4,.mov,.avi,.mkv,.webm,video/*" className="hidden" onChange={(e) => handleFile(e.target.files?.[0])} />
+        </label>
 
         {previewUrl && (
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(240px,0.6fr)]">
