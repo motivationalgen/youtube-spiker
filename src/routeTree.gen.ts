@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppVideoToolRouteImport } from './routes/_app.video-tool'
 import { Route as AppVideoIdeasRouteImport } from './routes/_app.video-ideas'
 import { Route as AppTitleGeneratorRouteImport } from './routes/_app.title-generator'
 import { Route as AppThumbnailToolRouteImport } from './routes/_app.thumbnail-tool'
@@ -32,6 +33,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppVideoToolRoute = AppVideoToolRouteImport.update({
+  id: '/video-tool',
+  path: '/video-tool',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppVideoIdeasRoute = AppVideoIdeasRouteImport.update({
   id: '/video-ideas',
@@ -108,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/thumbnail-tool': typeof AppThumbnailToolRoute
   '/title-generator': typeof AppTitleGeneratorRoute
   '/video-ideas': typeof AppVideoIdeasRoute
+  '/video-tool': typeof AppVideoToolRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/thumbnail-tool': typeof AppThumbnailToolRoute
   '/title-generator': typeof AppTitleGeneratorRoute
   '/video-ideas': typeof AppVideoIdeasRoute
+  '/video-tool': typeof AppVideoToolRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/_app/thumbnail-tool': typeof AppThumbnailToolRoute
   '/_app/title-generator': typeof AppTitleGeneratorRoute
   '/_app/video-ideas': typeof AppVideoIdeasRoute
+  '/_app/video-tool': typeof AppVideoToolRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -157,6 +166,7 @@ export interface FileRouteTypes {
     | '/thumbnail-tool'
     | '/title-generator'
     | '/video-ideas'
+    | '/video-tool'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -172,6 +182,7 @@ export interface FileRouteTypes {
     | '/thumbnail-tool'
     | '/title-generator'
     | '/video-ideas'
+    | '/video-tool'
   id:
     | '__root__'
     | '/'
@@ -188,6 +199,7 @@ export interface FileRouteTypes {
     | '/_app/thumbnail-tool'
     | '/_app/title-generator'
     | '/_app/video-ideas'
+    | '/_app/video-tool'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -210,6 +222,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_app/video-tool': {
+      id: '/_app/video-tool'
+      path: '/video-tool'
+      fullPath: '/video-tool'
+      preLoaderRoute: typeof AppVideoToolRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_app/video-ideas': {
       id: '/_app/video-ideas'
@@ -311,6 +330,7 @@ interface AppRouteChildren {
   AppThumbnailToolRoute: typeof AppThumbnailToolRoute
   AppTitleGeneratorRoute: typeof AppTitleGeneratorRoute
   AppVideoIdeasRoute: typeof AppVideoIdeasRoute
+  AppVideoToolRoute: typeof AppVideoToolRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -326,6 +346,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppThumbnailToolRoute: AppThumbnailToolRoute,
   AppTitleGeneratorRoute: AppTitleGeneratorRoute,
   AppVideoIdeasRoute: AppVideoIdeasRoute,
+  AppVideoToolRoute: AppVideoToolRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

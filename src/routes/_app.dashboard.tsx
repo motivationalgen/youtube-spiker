@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, Tags, Type, TrendingUp, FileText, Bookmark, Image, Lightbulb, CalendarDays, FileEdit } from "lucide-react";
+import { Search, Tags, Type, TrendingUp, FileText, Bookmark, Image, Lightbulb, CalendarDays, FileEdit, Video } from "lucide-react";
 import { getItemsByType } from "@/lib/storage";
 
 export const Route = createFileRoute("/_app/dashboard")({
@@ -63,6 +63,13 @@ const tools = [
     icon: Image,
     url: "/thumbnail-tool",
     color: "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400",
+  },
+  {
+    title: "Video Tool",
+    description: "Trim, resize, convert, and export videos",
+    icon: Video,
+    url: "/video-tool",
+    color: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400",
   },
 ];
 
