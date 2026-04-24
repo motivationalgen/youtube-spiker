@@ -12,6 +12,7 @@ import {
   Lightbulb,
   CalendarDays,
   Image,
+  Video,
 } from "lucide-react";
 import { Link, useLocation } from "@tanstack/react-router";
 import {
@@ -40,6 +41,7 @@ const seoTools = [
 const contentTools = [
   { title: "Video Ideas", url: "/video-ideas", icon: Lightbulb },
   { title: "Content Planner", url: "/content-planner", icon: CalendarDays },
+  { title: "Video Tool", url: "/video-tool", icon: Video },
 ];
 
 const manageItems = [
