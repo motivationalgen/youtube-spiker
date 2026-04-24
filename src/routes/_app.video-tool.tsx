@@ -133,8 +133,8 @@ function VideoToolPage() {
         setProgress(Math.max(3, (i / ranges.length) * 90));
         await ffmpeg.exec(buildFfmpegArgs(sourceName, outName, clip, platform, format, compression));
         const data = await ffmpeg.readFile(outName);
-        const bytes = data instanceof Uint8Array ? data : new TextEncoder().encode(data);
-        const blob = new Blob([bytes], { type: format === "gif" ? "image/gif" : `video/${format === "mov" ? "quicktime" : format}` });
+        const bytes = data instanceof Uint8Array ? new Uint8Array(data) : new TextEncoder().encode(data);
+        const blob = new Blob([bytes.buffer], { type: format === "gif" ? "image/gif" : `video/${format === "mov" ? "quicktime" : format}` });
         processed.push({ ...clip, blob, url: URL.createObjectURL(blob), filename: outName });
         await ffmpeg.deleteFile(outName);
       }
