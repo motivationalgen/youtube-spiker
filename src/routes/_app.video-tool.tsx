@@ -54,12 +54,18 @@ async function loadFfmpeg(onProgress: (progress: number) => void) {
     import("@ffmpeg/util"),
   ]);
   const ffmpeg = new FFmpeg();
-  ffmpeg.on("progress", ({ progress }) => onProgress(Math.min(98, Math.max(1, progress * 100))));
+  ffmpeg.on("progress", ({ progress }) => {
+    if (Number.isFinite(progress) && progress > 0) {
+      onProgress(Math.min(98, Math.max(1, progress * 100)));
+    }
+  });
   const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd";
+  onProgress(3);
   await ffmpeg.load({
     coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
     wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
   });
+  onProgress(8);
   return { ffmpeg, fetchFile };
 }
 
@@ -124,19 +130,24 @@ function VideoToolPage() {
     try {
       const { ffmpeg, fetchFile } = await loadFfmpeg(setProgress);
       const sourceName = inputName(file);
+      setProgress(10);
       await ffmpeg.writeFile(sourceName, await fetchFile(file));
+      setProgress(15);
       const processed: ProcessedClip[] = [];
 
       for (let i = 0; i < ranges.length; i += 1) {
         const clip = ranges[i];
         const outName = outputName(i, format, ranges.length > 1);
-        setProgress(Math.max(3, (i / ranges.length) * 90));
+        const clipStartProgress = 15 + (i / ranges.length) * 80;
+        setProgress(Math.max(clipStartProgress, 15));
         await ffmpeg.exec(buildFfmpegArgs(sourceName, outName, clip, platform, format, compression));
+        setProgress(Math.min(95, 15 + ((i + 0.8) / ranges.length) * 80));
         const data = await ffmpeg.readFile(outName);
         const bytes = data instanceof Uint8Array ? new Uint8Array(data) : new TextEncoder().encode(data);
         const blob = new Blob([bytes.buffer], { type: format === "gif" ? "image/gif" : `video/${format === "mov" ? "quicktime" : format}` });
         processed.push({ ...clip, blob, url: URL.createObjectURL(blob), filename: outName });
         await ffmpeg.deleteFile(outName);
+        setProgress(Math.min(98, 15 + ((i + 1) / ranges.length) * 80));
       }
 
       await ffmpeg.deleteFile(sourceName);
