@@ -16,6 +16,7 @@ export type PlatformPreset = {
 
 export type OutputFormat = "mp4" | "mov" | "webm" | "gif";
 export type CompressionMode = "high" | "balanced" | "small";
+export type FitMode = "crop" | "pad";
 
 export type ClipRange = {
   id: string;

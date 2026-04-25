@@ -74,8 +74,8 @@ export function VideoUploadSection({ file, previewUrl, metadata, onVideoReady, o
         </label>
 
         {previewUrl && (
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(240px,0.6fr)]">
-            <video src={previewUrl} controls className="aspect-video w-full rounded-lg border bg-muted object-contain" />
+          <div className="grid gap-4 grid-cols-1 lg:grid-cols-[minmax(0,1.4fr)_minmax(240px,0.6fr)]">
+            <video src={previewUrl} controls playsInline className="aspect-video w-full rounded-lg border bg-muted object-contain" />
             <div className="rounded-lg border bg-muted/30 p-4">
               <div className="mb-3 flex items-center gap-2">
                 <Badge variant="secondary">Ready</Badge>
