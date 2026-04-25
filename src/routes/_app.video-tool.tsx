@@ -87,10 +87,18 @@ function buildFfmpegArgs(
   ];
 }
 
+const FFMPEG_VERSION = "0.12.10";
 const FFMPEG_CORE_VERSION = "0.12.6";
-const CORE_CDNS = [
-  `https://unpkg.com/@ffmpeg/core@${FFMPEG_CORE_VERSION}/dist/umd`,
-  `https://cdn.jsdelivr.net/npm/@ffmpeg/core@${FFMPEG_CORE_VERSION}/dist/umd`,
+// Each entry: [coreBase, classWorkerBase] — the classWorker comes from @ffmpeg/ffmpeg, core from @ffmpeg/core.
+const CDN_SOURCES = [
+  {
+    core: `https://unpkg.com/@ffmpeg/core@${FFMPEG_CORE_VERSION}/dist/umd`,
+    worker: `https://unpkg.com/@ffmpeg/ffmpeg@${FFMPEG_VERSION}/dist/umd`,
+  },
+  {
+    core: `https://cdn.jsdelivr.net/npm/@ffmpeg/core@${FFMPEG_CORE_VERSION}/dist/umd`,
+    worker: `https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@${FFMPEG_VERSION}/dist/umd`,
+  },
 ];
 
 async function loadFfmpeg(
@@ -115,17 +123,18 @@ async function loadFfmpeg(
   });
 
   let lastErr: unknown = null;
-  for (const baseURL of CORE_CDNS) {
+  for (const source of CDN_SOURCES) {
     try {
-      onStep(`Loading engine from ${new URL(baseURL).hostname}…`);
+      onStep(`Loading engine from ${new URL(source.core).hostname}…`);
       // eslint-disable-next-line no-console
-      console.log("[video-tool] Fetching ffmpeg core from", baseURL);
-      const [coreURL, wasmURL] = await Promise.all([
-        toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-        toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
+      console.log("[video-tool] Fetching ffmpeg core from", source.core);
+      const [coreURL, wasmURL, classWorkerURL] = await Promise.all([
+        toBlobURL(`${source.core}/ffmpeg-core.js`, "text/javascript"),
+        toBlobURL(`${source.core}/ffmpeg-core.wasm`, "application/wasm"),
+        toBlobURL(`${source.worker}/814.ffmpeg.js`, "text/javascript"),
       ]);
       onProgress(5);
-      await ffmpeg.load({ coreURL, wasmURL });
+      await ffmpeg.load({ coreURL, wasmURL, classWorkerURL });
       onProgress(10);
       // eslint-disable-next-line no-console
       console.log("[video-tool] ffmpeg loaded successfully");
@@ -133,7 +142,7 @@ async function loadFfmpeg(
     } catch (err) {
       lastErr = err;
       // eslint-disable-next-line no-console
-      console.warn("[video-tool] CDN failed, trying next:", baseURL, err);
+      console.warn("[video-tool] CDN failed, trying next:", source.core, err);
     }
   }
   throw lastErr instanceof Error ? lastErr : new Error("Failed to load video engine from all CDNs.");
