@@ -263,7 +263,8 @@ function VideoToolPage() {
             : format === "webm"
               ? "video/webm"
               : "video/mp4";
-        const blob = new Blob([bytes], { type: mime });
+        const safeBuffer = bytes.slice().buffer as ArrayBuffer;
+        const blob = new Blob([safeBuffer], { type: mime });
         processed.push({ ...clip, blob, url: URL.createObjectURL(blob), filename: outName });
         try {
           await ffmpeg.deleteFile(outName);

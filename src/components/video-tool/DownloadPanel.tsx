@@ -26,7 +26,8 @@ export function DownloadPanel({ clips }: { clips: ProcessedClip[] }) {
       entries[clip.filename] = new Uint8Array(await clip.blob.arrayBuffer());
     }
     const zipped = zipSync(entries);
-    const url = URL.createObjectURL(new Blob([zipped], { type: "application/zip" }));
+    const zipBuffer = zipped.slice().buffer as ArrayBuffer;
+    const url = URL.createObjectURL(new Blob([zipBuffer], { type: "application/zip" }));
     downloadUrl(url, "video-tool-clips.zip");
     setTimeout(() => URL.revokeObjectURL(url), 2000);
   };
