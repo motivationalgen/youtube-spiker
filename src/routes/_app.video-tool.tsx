@@ -111,7 +111,7 @@ async function loadFfmpeg(
   onStep: (label: string) => void,
   onLog: (entry: string) => void,
 ) {
-  const [{ FFmpeg }, { fetchFile }] = await Promise.all([
+  const [{ FFmpeg }, { fetchFile, toBlobURL }] = await Promise.all([
     import("@ffmpeg/ffmpeg"),
     import("@ffmpeg/util"),
   ]);
@@ -129,12 +129,20 @@ async function loadFfmpeg(
 
   let lastErr: unknown = null;
   for (const source of ENGINE_SOURCES) {
+    let coreBlobURL = "";
+    let wasmBlobURL = "";
     try {
       onStep(`Loading engine from ${source.label}…`);
       // eslint-disable-next-line no-console
       console.log("[video-tool] Loading ffmpeg core", source);
-      onProgress(5);
-      await ffmpeg.load({ coreURL: source.coreURL, wasmURL: source.wasmURL });
+      coreBlobURL = await toBlobURL(source.coreURL, "text/javascript", true, ({ total, received }) => {
+        onProgress(total > 0 ? 2 + Math.min(2, (received / total) * 2) : 3);
+      });
+      wasmBlobURL = await toBlobURL(source.wasmURL, "application/wasm", true, ({ total, received }) => {
+        onProgress(total > 0 ? 4 + Math.min(5, (received / total) * 5) : 6);
+      });
+      onProgress(9);
+      await ffmpeg.load({ coreURL: coreBlobURL, wasmURL: wasmBlobURL });
       onProgress(10);
       // eslint-disable-next-line no-console
       console.log("[video-tool] ffmpeg loaded successfully from", source.label);
@@ -143,6 +151,9 @@ async function loadFfmpeg(
       lastErr = err;
       // eslint-disable-next-line no-console
       console.warn("[video-tool] Engine source failed, trying next:", source.label, err);
+    } finally {
+      if (coreBlobURL) URL.revokeObjectURL(coreBlobURL);
+      if (wasmBlobURL) URL.revokeObjectURL(wasmBlobURL);
     }
   }
   throw lastErr instanceof Error ? lastErr : new Error("Failed to load the video engine.");
