@@ -106,12 +106,54 @@ const ENGINE_SOURCES = [
   },
 ];
 
+async function readFileAsUint8Array(
+  file: File,
+  onProgress: (value: number) => void,
+): Promise<Uint8Array> {
+  // Modern, stream-backed read. Avoids FileReader "Code=-1" failures.
+  try {
+    const buffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    // eslint-disable-next-line no-console
+    console.log("[video-tool] Read", bytes.byteLength, "bytes from file (single-shot)");
+    onProgress(15);
+    return bytes;
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn("[video-tool] Single-shot file read failed, falling back to chunked read", err);
+  }
+
+  // Chunked fallback for memory-constrained / unreliable environments.
+  const CHUNK = 8 * 1024 * 1024; // 8 MB
+  const total = file.size;
+  const out = new Uint8Array(total);
+  let offset = 0;
+  while (offset < total) {
+    const end = Math.min(offset + CHUNK, total);
+    try {
+      const chunkBuf = await file.slice(offset, end).arrayBuffer();
+      out.set(new Uint8Array(chunkBuf), offset);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("[video-tool] Chunked read failed at offset", offset, err);
+      throw new Error(
+        "Could not read the video file from your device. Try re-selecting the file or use a smaller video.",
+      );
+    }
+    offset = end;
+    onProgress(12 + Math.min(3, (offset / total) * 3));
+  }
+  // eslint-disable-next-line no-console
+  console.log("[video-tool] Read", out.byteLength, "bytes from file (chunked)");
+  return out;
+}
+
 async function loadFfmpeg(
   onProgress: (value: number) => void,
   onStep: (label: string) => void,
   onLog: (entry: string) => void,
 ) {
-  const [{ FFmpeg }, { fetchFile, toBlobURL }] = await Promise.all([
+  const [{ FFmpeg }, { toBlobURL }] = await Promise.all([
     import("@ffmpeg/ffmpeg"),
     import("@ffmpeg/util"),
   ]);
