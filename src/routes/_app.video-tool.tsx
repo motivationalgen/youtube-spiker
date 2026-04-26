@@ -219,6 +219,7 @@ function VideoToolPage() {
 
   const previewUrlRef = useRef<string | null>(null);
   const outputsRef = useRef<ProcessedClip[]>([]);
+  const fileBytesRef = useRef<Uint8Array | null>(null);
   previewUrlRef.current = previewUrl;
   outputsRef.current = outputs;
 
@@ -236,9 +237,15 @@ function VideoToolPage() {
     };
   }, []);
 
-  const handleVideoReady = (nextFile: File, url: string, nextMetadata: VideoMetadata) => {
+  const handleVideoReady = (
+    nextFile: File,
+    url: string,
+    nextMetadata: VideoMetadata,
+    bytes: Uint8Array,
+  ) => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     outputs.forEach((clip) => URL.revokeObjectURL(clip.url));
+    fileBytesRef.current = bytes;
     setFile(nextFile);
     setPreviewUrl(url);
     setMetadata(nextMetadata);
@@ -250,7 +257,7 @@ function VideoToolPage() {
     setProgress(0);
     toast.success("Video loaded");
     // eslint-disable-next-line no-console
-    console.log("[video-tool] Loaded", nextFile.name, nextMetadata);
+    console.log("[video-tool] Loaded", nextFile.name, nextMetadata, "bytes:", bytes.byteLength);
   };
 
   const handleError = (message: string) => {
