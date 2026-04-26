@@ -87,17 +87,22 @@ function buildFfmpegArgs(
   ];
 }
 
-const FFMPEG_VERSION = "0.12.10";
-const FFMPEG_CORE_VERSION = "0.12.6";
-// Each entry: [coreBase, classWorkerBase] — the classWorker comes from @ffmpeg/ffmpeg, core from @ffmpeg/core.
-const CDN_SOURCES = [
+const FFMPEG_CORE_VERSION = "0.12.9";
+const ENGINE_SOURCES = [
   {
-    core: `https://unpkg.com/@ffmpeg/core@${FFMPEG_CORE_VERSION}/dist/umd`,
-    worker: `https://unpkg.com/@ffmpeg/ffmpeg@${FFMPEG_VERSION}/dist/umd`,
+    label: "local app assets",
+    coreURL: "/ffmpeg/ffmpeg-core.js",
+    wasmURL: "/ffmpeg/ffmpeg-core.wasm",
   },
   {
-    core: `https://cdn.jsdelivr.net/npm/@ffmpeg/core@${FFMPEG_CORE_VERSION}/dist/umd`,
-    worker: `https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@${FFMPEG_VERSION}/dist/umd`,
+    label: "unpkg.com",
+    coreURL: `https://unpkg.com/@ffmpeg/core@${FFMPEG_CORE_VERSION}/dist/esm/ffmpeg-core.js`,
+    wasmURL: `https://unpkg.com/@ffmpeg/core@${FFMPEG_CORE_VERSION}/dist/esm/ffmpeg-core.wasm`,
+  },
+  {
+    label: "cdn.jsdelivr.net",
+    coreURL: `https://cdn.jsdelivr.net/npm/@ffmpeg/core@${FFMPEG_CORE_VERSION}/dist/esm/ffmpeg-core.js`,
+    wasmURL: `https://cdn.jsdelivr.net/npm/@ffmpeg/core@${FFMPEG_CORE_VERSION}/dist/esm/ffmpeg-core.wasm`,
   },
 ];
 
@@ -123,29 +128,24 @@ async function loadFfmpeg(
   });
 
   let lastErr: unknown = null;
-  for (const source of CDN_SOURCES) {
+  for (const source of ENGINE_SOURCES) {
     try {
-      onStep(`Loading engine from ${new URL(source.core).hostname}…`);
+      onStep(`Loading engine from ${source.label}…`);
       // eslint-disable-next-line no-console
-      console.log("[video-tool] Fetching ffmpeg core from", source.core);
-      const [coreURL, wasmURL, classWorkerURL] = await Promise.all([
-        toBlobURL(`${source.core}/ffmpeg-core.js`, "text/javascript"),
-        toBlobURL(`${source.core}/ffmpeg-core.wasm`, "application/wasm"),
-        toBlobURL(`${source.worker}/814.ffmpeg.js`, "text/javascript"),
-      ]);
+      console.log("[video-tool] Loading ffmpeg core", source);
       onProgress(5);
-      await ffmpeg.load({ coreURL, wasmURL, classWorkerURL });
+      await ffmpeg.load({ coreURL: source.coreURL, wasmURL: source.wasmURL });
       onProgress(10);
       // eslint-disable-next-line no-console
-      console.log("[video-tool] ffmpeg loaded successfully");
+      console.log("[video-tool] ffmpeg loaded successfully from", source.label);
       return { ffmpeg, fetchFile };
     } catch (err) {
       lastErr = err;
       // eslint-disable-next-line no-console
-      console.warn("[video-tool] CDN failed, trying next:", source.core, err);
+      console.warn("[video-tool] Engine source failed, trying next:", source.label, err);
     }
   }
-  throw lastErr instanceof Error ? lastErr : new Error("Failed to load video engine from all CDNs.");
+  throw lastErr instanceof Error ? lastErr : new Error("Failed to load the video engine.");
 }
 
 function VideoToolPage() {
