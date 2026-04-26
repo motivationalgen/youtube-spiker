@@ -11,14 +11,14 @@ type Props = {
   file: File | null;
   previewUrl: string | null;
   metadata: VideoMetadata | null;
-  onVideoReady: (file: File, url: string, metadata: VideoMetadata) => void;
+  onVideoReady: (file: File, url: string, metadata: VideoMetadata, bytes: Uint8Array) => void;
   onError: (message: string) => void;
 };
 
 export function VideoUploadSection({ file, previewUrl, metadata, onVideoReady, onError }: Props) {
   const [dragging, setDragging] = useState(false);
 
-  const handleFile = (selected?: File) => {
+  const handleFile = async (selected?: File) => {
     if (!selected) return;
     const validExtension = /\.(mp4|mov|avi|mkv|webm)$/i.test(selected.name);
     if (!acceptedVideoTypes.includes(selected.type) && !validExtension) {
@@ -30,16 +30,40 @@ export function VideoUploadSection({ file, previewUrl, metadata, onVideoReady, o
       return;
     }
 
-    const url = URL.createObjectURL(selected);
+    // Read the file IMMEDIATELY into memory while the user gesture is fresh.
+    // On mobile browsers the File reference can later throw NotReadableError
+    // ("permission problems that have occurred after a reference to a file was acquired").
+    let bytes: Uint8Array;
+    try {
+      const buffer = await selected.arrayBuffer();
+      bytes = new Uint8Array(buffer);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("[video-tool] Could not read uploaded file", err);
+      onError("Could not read this video. Try selecting it again.");
+      return;
+    }
+
+    // Build a stable Blob/File from the bytes we already own — this no longer
+    // depends on the original OS file handle, which may be revoked later.
+    const stableBlob = new Blob([bytes.slice().buffer as ArrayBuffer], {
+      type: selected.type || "video/mp4",
+    });
+    const stableFile = new File([stableBlob], selected.name, {
+      type: selected.type || "video/mp4",
+      lastModified: selected.lastModified,
+    });
+
+    const url = URL.createObjectURL(stableBlob);
     const video = document.createElement("video");
     video.preload = "metadata";
     video.onloadedmetadata = () => {
-      onVideoReady(selected, url, {
+      onVideoReady(stableFile, url, {
         duration: video.duration,
         width: video.videoWidth,
         height: video.videoHeight,
-        size: selected.size,
-      });
+        size: stableFile.size,
+      }, bytes);
     };
     video.onerror = () => {
       URL.revokeObjectURL(url);
