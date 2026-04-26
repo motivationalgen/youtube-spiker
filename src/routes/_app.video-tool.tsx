@@ -299,9 +299,21 @@ function VideoToolPage() {
       const sourceName = inputName(file);
       setStep("Loading video into engine…");
       setProgress(12);
+      // Use the bytes captured at upload time. The original File handle may
+      // have been revoked by the browser by now (NotReadableError on mobile).
+      let inputBytes = fileBytesRef.current;
+      if (!inputBytes) {
+        try {
+          inputBytes = await readFileAsUint8Array(file, setProgress);
+          fileBytesRef.current = inputBytes;
+        } catch (readErr) {
+          // eslint-disable-next-line no-console
+          console.error("[video-tool] Fallback file read failed", readErr);
+          throw new Error("Could not read the video file. Please re-upload it and try again.");
+        }
+      }
       // eslint-disable-next-line no-console
-      console.log("[video-tool] Writing input file", sourceName);
-      const inputBytes = await readFileAsUint8Array(file, setProgress);
+      console.log("[video-tool] Writing input file", sourceName, inputBytes.byteLength, "bytes");
       await ffmpeg.writeFile(sourceName, inputBytes);
       setProgress(15);
 
