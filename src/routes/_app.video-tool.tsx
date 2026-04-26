@@ -188,7 +188,7 @@ async function loadFfmpeg(
       onProgress(10);
       // eslint-disable-next-line no-console
       console.log("[video-tool] ffmpeg loaded successfully from", source.label);
-      return { ffmpeg, fetchFile };
+      return { ffmpeg };
     } catch (err) {
       lastErr = err;
       // eslint-disable-next-line no-console
