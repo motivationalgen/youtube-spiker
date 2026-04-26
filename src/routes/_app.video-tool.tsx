@@ -111,7 +111,7 @@ async function loadFfmpeg(
   onStep: (label: string) => void,
   onLog: (entry: string) => void,
 ) {
-  const [{ FFmpeg }, { fetchFile, toBlobURL }] = await Promise.all([
+  const [{ FFmpeg }, { fetchFile }] = await Promise.all([
     import("@ffmpeg/ffmpeg"),
     import("@ffmpeg/util"),
   ]);
