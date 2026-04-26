@@ -11,7 +11,7 @@ type Props = {
   file: File | null;
   previewUrl: string | null;
   metadata: VideoMetadata | null;
-  onVideoReady: (file: File, url: string, metadata: VideoMetadata) => void;
+  onVideoReady: (file: File, url: string, metadata: VideoMetadata, bytes: Uint8Array) => void;
   onError: (message: string) => void;
 };
 
