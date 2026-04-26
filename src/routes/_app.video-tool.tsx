@@ -287,14 +287,15 @@ function VideoToolPage() {
 
     let ffmpegInstance: Awaited<ReturnType<typeof loadFfmpeg>>["ffmpeg"] | null = null;
     try {
-      const { ffmpeg, fetchFile } = await loadFfmpeg(setProgress, setStep, pushLog);
+      const { ffmpeg } = await loadFfmpeg(setProgress, setStep, pushLog);
       ffmpegInstance = ffmpeg;
       const sourceName = inputName(file);
       setStep("Loading video into engine…");
       setProgress(12);
       // eslint-disable-next-line no-console
       console.log("[video-tool] Writing input file", sourceName);
-      await ffmpeg.writeFile(sourceName, await fetchFile(file));
+      const inputBytes = await readFileAsUint8Array(file, setProgress);
+      await ffmpeg.writeFile(sourceName, inputBytes);
       setProgress(15);
 
       const processed: ProcessedClip[] = [];
