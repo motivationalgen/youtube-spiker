@@ -11,9 +11,11 @@ type Props = {
   onSelect: (preset: PlatformPreset) => void;
   fit: FitMode;
   onFitChange: (fit: FitMode) => void;
+  customCrop?: { x: number; y: number };
+  onCustomCropChange?: (crop: { x: number; y: number }) => void;
 };
 
-export function PlatformSelector({ selected, metadata, disabled, onSelect, fit, onFitChange }: Props) {
+export function PlatformSelector({ selected, metadata, disabled, onSelect, fit, onFitChange, customCrop = { x: 50, y: 50 }, onCustomCropChange }: Props) {
   const [rw, rh] = selected.ratio.split(":").map(Number);
   const overlayStyle =
     selected.ratio === "9:16"
@@ -60,18 +62,55 @@ export function PlatformSelector({ selected, metadata, disabled, onSelect, fit, 
             <button
               type="button"
               disabled={disabled}
-              onClick={() => onFitChange("pad")}
-              className={`flex flex-1 items-center justify-center gap-2 border-l px-4 py-2 text-sm transition sm:flex-none ${fit === "pad" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
+              onClick={() => onFitChange("custom")}
+              className={`flex flex-1 items-center justify-center gap-2 border-l px-4 py-2 text-sm transition sm:flex-none ${fit === "custom" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
             >
-              <Square className="h-4 w-4" /> Fit (bars)
+              <Crop className="h-4 w-4" /> Custom Position
             </button>
           </div>
           <p className="text-xs text-muted-foreground">
             {fit === "crop"
               ? "Fills the full target size by center-cropping. No bars, no stretching."
+              : fit === "custom"
+              ? "Choose the exact area of the video to focus on."
               : "Keeps the entire frame visible and adds black bars where needed."}
           </p>
         </div>
+
+        {fit === "custom" && (
+          <div className="space-y-4 rounded-lg border bg-muted/20 p-4">
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Horizontal Position (X)</span>
+                <span>{customCrop.x}%</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={customCrop.x}
+                onChange={(e) => onCustomCropChange?.({ ...customCrop, x: Number(e.target.value) })}
+                className="w-full"
+                disabled={disabled}
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Vertical Position (Y)</span>
+                <span>{customCrop.y}%</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={customCrop.y}
+                onChange={(e) => onCustomCropChange?.({ ...customCrop, y: Number(e.target.value) })}
+                className="w-full"
+                disabled={disabled}
+              />
+            </div>
+          </div>
+        )}
 
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px]">
           <div className="flex aspect-video items-center justify-center overflow-hidden rounded-lg border bg-muted/40 p-4">

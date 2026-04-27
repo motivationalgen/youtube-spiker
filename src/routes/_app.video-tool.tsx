@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { VideoUploadSection } from "@/components/video-tool/VideoUploadSection";
 import { TrimTimeline } from "@/components/video-tool/TrimTimeline";
 import { AutoTrimSection } from "@/components/video-tool/AutoTrimSection";
+import { TranscriptionSection } from "@/components/video-tool/TranscriptionSection";
 import { PlatformSelector } from "@/components/video-tool/PlatformSelector";
 import { FormatSelector } from "@/components/video-tool/FormatSelector";
 import { CompressionSelector } from "@/components/video-tool/CompressionSelector";
@@ -20,6 +21,7 @@ import type {
   PlatformPreset,
   ProcessedClip,
   VideoMetadata,
+  CustomCrop,
 } from "@/components/video-tool/types";
 
 export const Route = createFileRoute("/_app/video-tool")({
@@ -44,10 +46,17 @@ function outputName(index: number, format: OutputFormat, multiple: boolean) {
   return multiple ? `clip-${String(index + 1).padStart(2, "0")}.${extension}` : `processed-video.${extension}`;
 }
 
-function buildVideoFilter(preset: PlatformPreset, fit: FitMode) {
+function buildVideoFilter(preset: PlatformPreset, fit: FitMode, customCrop?: CustomCrop) {
   if (fit === "crop") {
     // Smart fill: scale up and center-crop, no bars.
     return `scale=${preset.width}:${preset.height}:force_original_aspect_ratio=increase,crop=${preset.width}:${preset.height}`;
+  }
+  if (fit === "custom" && customCrop) {
+    // Custom crop based on percentage x and y
+    // Scale up to cover the target area, then crop at specific X and Y
+    const xExpr = `(in_w-out_w)*${customCrop.x}/100`;
+    const yExpr = `(in_h-out_h)*${customCrop.y}/100`;
+    return `scale=${preset.width}:${preset.height}:force_original_aspect_ratio=increase,crop=${preset.width}:${preset.height}:${xExpr}:${yExpr}`;
   }
   // Fit with letterbox / pillarbox padding, full frame preserved.
   return `scale=${preset.width}:${preset.height}:force_original_aspect_ratio=decrease,pad=${preset.width}:${preset.height}:(ow-iw)/2:(oh-ih)/2:color=black`;
@@ -61,9 +70,10 @@ function buildFfmpegArgs(
   format: OutputFormat,
   compression: CompressionMode,
   fit: FitMode,
+  customCrop?: CustomCrop
 ) {
   const duration = Math.max(0.2, clip.end - clip.start);
-  const vf = buildVideoFilter(preset, fit);
+  const vf = buildVideoFilter(preset, fit, customCrop);
   const startArgs = ["-ss", String(clip.start), "-t", String(duration), "-i", input];
   if (format === "gif") {
     return [...startArgs, "-vf", `fps=12,${vf}`, "-loop", "0", output];
@@ -209,6 +219,7 @@ function VideoToolPage() {
   const [segmentSeconds, setSegmentSeconds] = useState(0);
   const [platform, setPlatform] = useState(platformPresets[0]);
   const [fit, setFit] = useState<FitMode>("crop");
+  const [customCrop, setCustomCrop] = useState<CustomCrop>({ x: 50, y: 50 });
   const [format, setFormat] = useState<OutputFormat>("mp4");
   const [compression, setCompression] = useState<CompressionMode>("balanced");
   const [processing, setProcessing] = useState(false);
@@ -324,7 +335,7 @@ function VideoToolPage() {
         setStep(ranges.length > 1 ? `Encoding clip ${i + 1} of ${ranges.length}…` : "Encoding video…");
         const clipStartProgress = 15 + (i / ranges.length) * 80;
         setProgress(Math.max(clipStartProgress, 15));
-        const args = buildFfmpegArgs(sourceName, outName, clip, platform, format, compression, fit);
+        const args = buildFfmpegArgs(sourceName, outName, clip, platform, format, compression, fit, customCrop);
         // eslint-disable-next-line no-console
         console.log("[video-tool] ffmpeg.exec", args);
         const code = await ffmpeg.exec(args);
@@ -422,11 +433,14 @@ function VideoToolPage() {
         onSelect={setPlatform}
         fit={fit}
         onFitChange={setFit}
+        customCrop={customCrop}
+        onCustomCropChange={setCustomCrop}
       />
       <div className="grid gap-6 xl:grid-cols-2">
         <FormatSelector value={format} disabled={disabled} onChange={setFormat} />
         <CompressionSelector value={compression} disabled={disabled} onChange={setCompression} />
       </div>
+      <TranscriptionSection file={file} disabled={disabled} />
       <ProcessingPanel
         disabled={disabled}
         processing={processing}
