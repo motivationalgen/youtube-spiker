@@ -6,7 +6,7 @@
   "scripts": {
      "start": "node server.js",
     "dev": "vite dev",
-    "build": "vite build",
+    "build": "vite build && node -e \"const fs=require('fs');const p='dist/client/wrangler.json';fs.existsSync(p)&&fs.unlinkSync(p)&&console.log('Removed wrangler.json from dist')\"",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
