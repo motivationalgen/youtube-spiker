@@ -20,6 +20,9 @@ dist-ssr
 .wrangler/
 .dev.vars
 
+# FFmpeg binaries (loaded from CDN, not bundled)
+public/ffmpeg/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

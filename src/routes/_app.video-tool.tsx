@@ -100,11 +100,6 @@ function buildFfmpegArgs(
 const FFMPEG_CORE_VERSION = "0.12.9";
 const ENGINE_SOURCES = [
   {
-    label: "local app assets",
-    coreURL: "/ffmpeg/ffmpeg-core.js",
-    wasmURL: "/ffmpeg/ffmpeg-core.wasm",
-  },
-  {
     label: "unpkg.com",
     coreURL: `https://unpkg.com/@ffmpeg/core@${FFMPEG_CORE_VERSION}/dist/esm/ffmpeg-core.js`,
     wasmURL: `https://unpkg.com/@ffmpeg/core@${FFMPEG_CORE_VERSION}/dist/esm/ffmpeg-core.wasm`,
