@@ -19,8 +19,6 @@ dist-ssr
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
-wrangler.json
-wrangler.jsonc
 
 # FFmpeg binaries (loaded from CDN, not bundled)
 public/ffmpeg/
