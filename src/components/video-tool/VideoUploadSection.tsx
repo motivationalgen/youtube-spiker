@@ -3,8 +3,9 @@ import { Upload, Film, AlertCircle, Link } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { acceptedVideoTypes, formatBytes, formatTime, MAX_VIDEO_SIZE } from "./helpers";
 import { ReadLabelButton } from "./ReadLabelButton";
+import { createVideoPreview, validateVideoFile } from "./preview";
+import { VideoPreview } from "./VideoPreview";
 import type { VideoMetadata } from "./types";
 
 type Props = {
@@ -23,56 +24,21 @@ export function VideoUploadSection({ file, previewUrl, metadata, onVideoReady, o
 
   const handleFile = async (selected?: File) => {
     if (!selected) return;
-    const validExtension = /\.(mp4|mov|avi|mkv|webm)$/i.test(selected.name);
-    if (!acceptedVideoTypes.includes(selected.type) && !validExtension) {
-      onError("Unsupported format. Upload MP4, MOV, AVI, MKV, or WEBM.");
-      return;
-    }
-    if (selected.size > MAX_VIDEO_SIZE) {
-      onError("This file is very large. Please use a video under 700 MB for browser processing.");
+
+    const validationError = validateVideoFile(selected);
+    if (validationError) {
+      onError(validationError);
       return;
     }
 
-    // Read the file IMMEDIATELY into memory while the user gesture is fresh.
-    // On mobile browsers the File reference can later throw NotReadableError
-    // ("permission problems that have occurred after a reference to a file was acquired").
-    let bytes: Uint8Array;
     try {
-      const buffer = await selected.arrayBuffer();
-      bytes = new Uint8Array(buffer);
+      const preview = await createVideoPreview(selected);
+      onVideoReady(preview.file, preview.previewUrl, preview.metadata, preview.bytes);
     } catch (err) {
       // eslint-disable-next-line no-console
-      console.error("[video-tool] Could not read uploaded file", err);
-      onError("Could not read this video. Try selecting it again.");
-      return;
+      console.error("[video-tool] Could not create video preview", err);
+      onError(err instanceof Error ? err.message : "Could not read this video. Try selecting it again.");
     }
-
-    // Build a stable Blob/File from the bytes we already own — this no longer
-    // depends on the original OS file handle, which may be revoked later.
-    const stableBlob = new Blob([bytes.slice().buffer as ArrayBuffer], {
-      type: selected.type || "video/mp4",
-    });
-    const stableFile = new File([stableBlob], selected.name, {
-      type: selected.type || "video/mp4",
-      lastModified: selected.lastModified,
-    });
-
-    const url = URL.createObjectURL(stableBlob);
-    const video = document.createElement("video");
-    video.preload = "metadata";
-    video.onloadedmetadata = () => {
-      onVideoReady(stableFile, url, {
-        duration: video.duration,
-        width: video.videoWidth,
-        height: video.videoHeight,
-        size: stableFile.size,
-      }, bytes);
-    };
-    video.onerror = () => {
-      URL.revokeObjectURL(url);
-      onError("Could not read the video metadata. Try another file.");
-    };
-    video.src = url;
   };
 
   const handleLinkSubmit = async (e: React.FormEvent) => {
@@ -164,24 +130,7 @@ export function VideoUploadSection({ file, previewUrl, metadata, onVideoReady, o
           </form>
         )}
 
-        {previewUrl && (
-          <div className="grid gap-4 grid-cols-1 lg:grid-cols-[minmax(0,1.4fr)_minmax(240px,0.6fr)]">
-            <video src={previewUrl} controls playsInline className="aspect-video w-full rounded-lg border bg-muted object-contain" />
-            <div className="rounded-lg border bg-muted/30 p-4">
-              <div className="mb-3 flex items-center gap-2">
-                <Badge variant="secondary">Ready</Badge>
-                <span className="truncate text-sm font-medium">{file?.name}</span>
-              </div>
-              {metadata && (
-                <dl className="grid gap-3 text-sm">
-                  <div><dt className="text-muted-foreground">Duration</dt><dd className="font-medium">{formatTime(metadata.duration)}</dd></div>
-                  <div><dt className="text-muted-foreground">Resolution</dt><dd className="font-medium">{metadata.width}×{metadata.height}</dd></div>
-                  <div><dt className="text-muted-foreground">File size</dt><dd className="font-medium">{formatBytes(metadata.size)}</dd></div>
-                </dl>
-              )}
-            </div>
-          </div>
-        )}
+        {previewUrl && <VideoPreview file={file} previewUrl={previewUrl} metadata={metadata} />}
 
         {!previewUrl && (
           <p className="flex items-center gap-2 text-xs text-muted-foreground"><AlertCircle className="h-3.5 w-3.5" /> Processing controls unlock after upload.</p>
