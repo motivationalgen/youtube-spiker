@@ -8,7 +8,7 @@
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-base: "./"{
+base: "./"
 
 
 //export default defineConfig({
