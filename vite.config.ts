@@ -7,11 +7,12 @@
 //import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { defineConfig } from 'vite'
 
+
+
+
+
 export default defineConfig({
-base: "./"
-
-
-//export default defineConfig({
+    base: "./"
     vite: {
     publicDir: "public",
     optimizeDeps: {
