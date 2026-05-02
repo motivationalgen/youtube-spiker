@@ -12,7 +12,7 @@ base: "./"
 
 
 //export default defineConfig({
-//  vite: {
+    vite: {
     publicDir: "public",
     optimizeDeps: {
       exclude: ["@ffmpeg/ffmpeg", "@ffmpeg/util"],
